@@ -1,0 +1,23 @@
+[toolchain]
+anchor_version = "0.32.1"
+package_manager = "bun"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+flinch_v2 = "JDQgyFxwZJUpA31y2qhqhGgwfm5k7zANYUY1ctkqPB9y"
+
+[programs.devnet]
+flinch_v2 = "8mGLM6MoGgJBfJXAESN5C5fmKXCwnfinDGXX8drPFEie"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test --workspace"
