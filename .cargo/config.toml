@@ -1,0 +1,2 @@
+[target.'cfg(target_os = "solana")']
+rustflags = ['--cfg', 'getrandom_backend="unsupported"']
