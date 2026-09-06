@@ -1,0 +1,14 @@
+{
+  "network": "devnet",
+  "checkedDate": "2026-09-05",
+  "programId": "DRaycpLY18LhpbydsBWbVJtxpNv9oXPgjRSfpF2bWpYb",
+  "programData": "3KvTa2fYhMxMZNfHho5oX34yLQLwRauoU2JScBkugvXF",
+  "upgradeAuthority": "DRayw6sn9fCvbhx5ZLtAVGAgAk6qAAX7UT7urzkXTeM5",
+  "lastDeploySlot": 483501195,
+  "bytecodeLength": 724696,
+  "bytecodeSha256": "c5ba03746795b128cdfb38af41bbef130dc6d38cff532e03b208c938a8787a82",
+  "idlSource": "https://github.com/raydium-io/raydium-idl/blob/e7e0c96fe77bcf6a020b84a44c47a722aac8e359/raydium_cpmm/raydium_cp_swap.json",
+  "idlChanges": ["address changed from mainnet to devnet", "docs fields removed"],
+  "reviewedProgramSource": "https://github.com/raydium-io/raydium-cp-swap/tree/244e1241f3c8d90eb93f176dfbc35f2605ec5a5c",
+  "sourceBytecodeEquivalenceVerified": false
+}
