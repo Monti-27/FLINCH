@@ -1,0 +1,14 @@
+{
+  "name": "@flinch/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "buffer": "6.0.3",
+    "@coral-xyz/anchor": "0.32.1",
+    "@magicblock-labs/ephemeral-rollups-sdk": "0.17.0",
+    "@solana/spl-token": "0.4.15",
+    "@solana/web3.js": "1.98.4"
+  }
+}
