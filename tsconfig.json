@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["node"]
+  },
+  "include": ["tests/**/*.ts", "packages/*/src/**/*.ts", "apps/keeper/src/**/*.ts", "tools/local/**/*.ts", "tools/devnet/**/*.ts"]
+}
