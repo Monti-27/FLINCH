@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@import "../styles/palette.css";
+@import "../styles/tokens.css";
+@import "../styles/base.css";
+@import "../styles/notifications.css";
+@import "../styles/brand.css";
+@import "../styles/controls.css";
+@import "../styles/token-input.css";
+@import "../styles/shell.css";
+@import "../styles/player-rail.css";
+@import "../styles/player-seat.css";
+@import "../styles/market.css";
+@import "../styles/game.css";
+@import "../styles/lobby.css";
+@import "../styles/navigation.css";
+@import "../styles/footer.css";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--surface-raised);
+  --color-secondary-foreground: var(--foreground);
+  --color-accent: var(--selected);
+  --color-accent-foreground: var(--accent);
+  --color-destructive: var(--negative-surface);
+  --color-destructive-foreground: var(--negative);
+  --color-border: var(--border);
+  --color-input: var(--input-border);
+  --color-ring: var(--ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

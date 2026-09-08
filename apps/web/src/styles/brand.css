@@ -1,0 +1,15 @@
+.brand-mark { display: block; width: auto; height: var(--brand-mark-size, 1em); aspect-ratio: 28 / 33; flex: none; color: var(--brand-mark-color, var(--color-alabaster-grey-100)); }
+.app-footer[data-theme="light"] { --brand-mark-color: var(--color-shadow-grey-950); }
+.app-footer[data-theme="dark"] { --brand-mark-color: var(--color-alabaster-grey-100); }
+.brand-logo { display: inline-flex; align-items: center; gap: 0.35em; color: inherit; font: 700 1em/1 var(--font-display); letter-spacing: -0.065em; white-space: nowrap; }
+.brand-name { display: block; }
+.ecosystem-icon { display: inline-block; flex: none; object-fit: contain; vertical-align: middle; }
+.ecosystem-label, .ecosystem-credit { display: inline-flex; align-items: center; gap: var(--space-2); }
+.ecosystem-resource { display: inline-flex; align-items: center; gap: var(--space-3); }
+.brand-status { margin-bottom: var(--space-6); color: var(--foreground); font-size: var(--space-8); }
+.brand-message { max-width: 520px; margin: var(--space-12) auto; padding: var(--space-8); }
+.brand-message > p { margin-block: var(--space-3); color: var(--muted-foreground); }
+.brand-message > a { display: inline-flex; align-items: center; min-height: var(--space-10); color: var(--accent); font-weight: 600; }
+@media (max-width: 600px) {
+  .brand-message { margin: var(--space-4); padding: var(--space-6); }
+}
