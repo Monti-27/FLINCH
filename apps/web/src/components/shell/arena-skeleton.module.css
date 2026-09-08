@@ -1,0 +1,27 @@
+.identity { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); width: 300px; max-width: 60%; }
+.title { font-size: clamp(32px, 3.3vw, 48px); }
+.dial { mask-image: radial-gradient(farthest-side, transparent calc(100% - 12px), black calc(100% - 11px)); }
+.playerHeading { display: flex; align-items: center; justify-content: space-between; height: 32px; margin-bottom: var(--space-3); }
+.seat { border-color: var(--line-strong); }
+.seatText { display: grid; gap: var(--space-2); min-width: 0; }
+.compact { display: none; }
+.entryHeader { display: flex; justify-content: space-between; width: 100%; height: 48px; padding: var(--space-1); gap: var(--space-2); border-radius: var(--radius); background: var(--inset); }
+.terms { display: flex; align-items: center; }
+.availability { display: flex; align-items: center; justify-content: center; min-height: 1.55em; }
+.actionButton { border-radius: var(--radius); }
+.entryHeader > span { border-radius: var(--control-radius); }
+.action { min-height: 480px; }
+.action :global(.create-room) { animation: none; }
+@media (max-width: 1280px) { .seatPlus { width: 24px !important; height: 24px !important; } }
+@media (max-width: 1100px) {
+  .desktop { display: none; }
+  .compact { display: flex; justify-content: space-between; align-items: center; min-height: 48px; padding-inline: var(--space-4); border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--card); }
+  .navigation { display: none; }
+}
+@media (max-width: 600px) {
+  .identity { gap: var(--space-2); max-width: 56%; }
+  .title { font-size: clamp(26px, 6.4vw, 32px); }
+  .identity > span:first-child { width: 128px !important; }
+  .identity > span:last-child { width: 152px !important; }
+  .action { min-height: 0; }
+}
