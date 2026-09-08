@@ -1,0 +1,45 @@
+{
+  "name": "@flinch/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3000",
+    "build": "node ../../scripts/generate-brand-assets.mjs --check && next build --webpack",
+    "brand:generate": "node ../../scripts/generate-brand-assets.mjs",
+    "brand:check": "node ../../scripts/generate-brand-assets.mjs --check",
+    "start": "next start --hostname 127.0.0.1 --port 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.32.1",
+    "@flinch/client": "workspace:*",
+    "@fontsource-variable/manrope": "5.3.0",
+    "@fontsource-variable/space-grotesk": "5.3.0",
+    "@magicblock-labs/ephemeral-rollups-sdk": "0.17.0",
+    "@magicblock-labs/gum-sdk": "3.0.10",
+    "@number-flow/react": "0.6.2",
+    "@solana/spl-token": "0.4.15",
+    "@solana/wallet-adapter-react": "0.15.39",
+    "@solana/wallet-adapter-react-ui": "0.9.39",
+    "@solana/web3.js": "1.98.4",
+    "class-variance-authority": "0.7.1",
+    "framer-motion": "13.2.0",
+    "klinecharts": "10.0.3",
+    "lucide-react": "1.41.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "sonner": "2.0.8",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "tailwindcss": "4.3.3",
+    "vitest": "5.0.0"
+  }
+}
