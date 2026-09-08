@@ -1,0 +1,24 @@
+.flinch-toaster[data-sonner-toaster][data-sonner-theme="dark"] {
+  font-family: var(--font-sans);
+  --normal-bg: var(--card);
+  --normal-text: var(--foreground);
+  --normal-border: var(--line-strong);
+  --normal-bg-hover: var(--surface-raised);
+  --normal-border-hover: var(--input-border);
+  --border-radius: var(--control-radius);
+}
+.flinch-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  font-family: var(--font-sans);
+  box-shadow: 0 16px 40px var(--shadow);
+  overflow-wrap: anywhere;
+}
+.flinch-toaster[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button] {
+  min-height: 24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+}
+.flinch-toaster [data-close-button]::before { content: ""; position: absolute; inset: -10px; }
+.flinch-toaster [data-close-button]:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.flinch-toaster [data-close-button]:active { transform: var(--toast-close-button-transform); }

@@ -1,0 +1,86 @@
+.market-panel { --muted-foreground: var(--chart-muted); --foreground: var(--chart-text); container-type: inline-size; display: flex; flex-direction: column; align-self: stretch; width: 100%; min-width: 0; min-height: 480px; background: var(--chart-surface); border: 1px solid var(--chart-border); border-radius: var(--arena-radius); overflow: hidden; }
+.market-topline { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 88px; padding: var(--space-4) var(--space-5); }
+.market-heading { display: flex; align-items: center; gap: var(--space-6); min-width: 0; }
+.market-pair { display: grid; grid-template-columns: 24px auto; align-items: center; gap: var(--space-1) var(--space-2); flex-shrink: 0; }
+.market-pair .ecosystem-icon { grid-row: span 2; }
+.market-pair h2 { font: 600 var(--text-body)/1.2 var(--font-sans); margin: 0; letter-spacing: 0; }
+.market-pair h2 span { color: var(--muted-foreground); font-weight: 400; }
+.market-pair .caption { grid-column: 2; color: var(--muted-foreground); font-size: var(--text-small); }
+.market-price { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 62px; gap: var(--space-1); font-variant-numeric: tabular-nums; }
+.market-price strong { display: flex; align-items: center; min-height: 28px; font: 500 28px/1 var(--font-display); letter-spacing: -.04em; }
+.price-change { font-size: var(--text-small); color: var(--muted-foreground); white-space: nowrap; }
+.price-change[data-direction="up"] { color: var(--chart-up); }
+.price-change[data-direction="down"] { color: var(--chart-down); }
+.price-change small { color: var(--muted-foreground); font-size: inherit; margin-left: var(--space-1); }
+.feed-status { color: var(--muted-foreground); font-size: var(--text-small); white-space: nowrap; }
+.feed-status.stale, .feed-status.offline { color: var(--negative); }
+.chart-toolbar { display: flex; align-items: center; gap: var(--space-3); min-height: 48px; padding: var(--space-1) var(--space-3); border-block: 1px solid var(--chart-border); }
+.chart-toolbar .segmented { border: 0; background: transparent; padding: 0; border-radius: var(--chip-radius); }
+.chart-toolbar .segmented::before { inset: 4px auto; height: calc(100% - 8px); width: calc(100% / var(--segment-count)); background: var(--chart-selected); border-radius: 4px; }
+.chart-toolbar .segmented button { min-width: 40px; min-height: 40px; padding: 0 var(--space-2); color: var(--chart-muted); font: 500 var(--text-small)/1 var(--font-mono); }
+.chart-toolbar .segmented button[aria-pressed="true"] { color: var(--chart-text); }
+.chart-style-select { position: relative; height: 40px; border-left: 1px solid var(--chart-border); }
+.chart-style-select select { appearance: none; width: 170px; height: 40px; margin: 0; padding: 0 28px 0 36px; border: 0; border-radius: 4px; background: transparent; color: var(--chart-text); cursor: pointer; font: 500 var(--text-small)/1 var(--font-sans); }
+.chart-style-select select:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.chart-style-select option { color: var(--chart-text); background: var(--chart-selected); }
+.chart-style-select svg { position: absolute; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.chart-style-icon { left: 12px; color: var(--chart-text); }
+.chart-style-chevron { right: 8px; color: var(--chart-muted); }
+.chart-volume { min-height: 40px; padding-inline: var(--space-2); color: var(--chart-muted); font-size: var(--text-small); background: transparent; border-radius: 4px; }
+.chart-volume[aria-pressed="true"] { color: var(--chart-text); background: var(--chart-selected); }
+.chart-utilities { display: flex; gap: var(--space-1); margin-left: auto; }
+.chart-utilities .icon-button { min-height: 40px; width: 40px; border-radius: 4px; color: var(--chart-muted); }
+.chart-frame { position: relative; isolation: isolate; flex: 1; min-height: 280px; background: var(--chart); }
+.market-canvas { position: absolute; z-index: 0; inset: 0 var(--space-2); width: calc(100% - var(--space-4)); height: 100%; overflow: hidden; }
+.chart-footnote { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 0 var(--space-3); min-height: 44px; padding: 0 var(--space-3); color: var(--chart-muted); font-size: var(--text-small); border-top: 1px solid var(--chart-border); }
+.chart-timezone { margin-left: auto; font-family: var(--font-mono); }
+.chart-disclosure { margin: 0; }
+.chart-disclosure > div { position: absolute; z-index: 5; right: var(--space-3); bottom: calc(100% + 4px); width: min(380px, calc(100% - 24px)); max-height: min(480px, 70dvh); overflow-y: auto; padding: var(--space-4); background: var(--chart-surface); border: 1px solid var(--chart-border); border-radius: var(--control-radius); box-shadow: 0 16px 40px var(--shadow); color: var(--chart-text); }
+.chart-disclosure summary { display: inline-flex; align-items: center; min-height: 40px; cursor: pointer; color: var(--muted-foreground); }
+.chart-disclosure a { display: inline-flex; align-items: center; min-height: 40px; margin-right: var(--space-4); color: var(--accent); }
+.chart-disclosure p { max-width: 70ch; margin: 0 0 var(--space-2); }
+.chart-empty { position: absolute; z-index: 1; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; gap: var(--space-2); padding: var(--space-6); background: var(--chart); }
+.chart-empty svg { color: var(--muted-foreground); margin-bottom: var(--space-2); }
+.chart-empty strong { font-size: var(--text-body); font-weight: 600; }
+.chart-empty p { font-size: var(--text-small); color: var(--muted-foreground); margin: 0; max-width: 340px; }
+.chart-empty > span { font-size: var(--text-small); color: var(--muted-foreground); }
+.chart-warning { position: absolute; z-index: 1; bottom: 30px; left: var(--space-3); right: 72px; padding: var(--space-2) var(--space-3); color: var(--negative); background: var(--chart-surface); border: 1px solid var(--chart-border); border-radius: var(--chip-radius); font-size: var(--text-small); pointer-events: none; }
+.chart-error { margin: 0; padding: var(--space-2) var(--space-5); color: var(--negative); font-size: var(--text-small); }
+.market-panel:fullscreen { border: 0; border-radius: 0; height: 100dvh; min-height: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.market-panel:fullscreen .chart-frame { flex: 1; height: auto; min-height: 0; }
+@container (max-width: 560px) {
+  .market-topline { align-items: flex-start; }
+  .market-heading { gap: var(--space-4); flex-wrap: wrap; }
+  .market-price { width: 128px; flex-shrink: 0; }
+  .market-topline > .feed-status { padding-top: var(--space-1); font-size: 11px; }
+  .price-change small { display: none; }
+  .chart-footnote { padding-inline: var(--space-3); }
+  .chart-style-select select { width: 56px; color: transparent; padding: 0; }
+  .chart-reference-note { order: 4; flex-basis: 100%; padding: 0 var(--space-2) var(--space-3); }
+  .chart-timezone { margin-left: auto; }
+}
+@media (max-width: 900px) {
+  .market-panel { min-height: 0; }
+  .chart-frame { flex: none; height: 320px; }
+}
+@media (max-width: 600px) {
+  .market-topline { padding: var(--space-4) var(--space-3); }
+  .market-heading { column-gap: var(--space-3); }
+  .market-price { min-height: 54px; }
+  .market-price strong { min-height: 24px; font-size: 24px; }
+  .market-topline > .feed-status { max-width: 72px; white-space: normal; text-align: right; }
+  .chart-toolbar { gap: var(--space-1); padding-inline: var(--space-2); }
+  .chart-volume { gap: var(--space-1); }
+  .chart-utilities { gap: 0; }
+  .chart-frame { height: 300px; }
+  .market-canvas { inset-inline: var(--space-1); width: calc(100% - var(--space-2)); }
+}
+@media (hover: hover) {
+  .chart-toolbar button:not(:disabled):hover, .chart-volume:hover { background: var(--chart-selected); color: var(--chart-text); }
+  .chart-style-select select:hover { background: var(--chart-selected); }
+  .chart-disclosure summary:hover { color: var(--chart-text); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chart-toolbar .segmented::before { transition: transform 150ms ease-out; }
+  .chart-style-select select, .chart-volume { transition: background-color 100ms ease-out; }
+}
