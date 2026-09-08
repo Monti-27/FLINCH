@@ -1,0 +1,19 @@
+.token-input { min-width: 0; padding: var(--space-4); background: var(--inset); border: 1px solid var(--line); border-radius: 16px; }
+.token-input-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.token-input-heading label { color: var(--muted-foreground); font-size: var(--text-small); font-weight: 500; }
+.token-unit { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 28px; font: 500 var(--text-small)/1 var(--font-sans); color: var(--foreground); }
+.token-input-value { display: flex; align-items: center; padding: var(--space-4) 0; }
+.token-input-value input { min-width: 0; min-height: 48px; margin: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; font: 500 var(--arena-number)/1.2 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
+.token-input-value input:focus-visible { outline: none; box-shadow: none; border: 0; }
+.token-input-value:focus-within { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: 4px; }
+.token-input-presets { padding-top: var(--space-3); border-top: 1px solid var(--line-strong); }
+.token-input-presets .segmented[data-appearance="keys"] button { background: var(--card); }
+.token-input-presets .segmented[data-appearance="keys"] button[aria-pressed="true"] { color: var(--primary-foreground); background: var(--primary); border-color: transparent; }
+.token-input-presets .stake-presets { width: 100%; }
+.stake-presets button { flex: 1; font-variant-numeric: tabular-nums; }
+@media (max-width: 1100px) {
+  .token-input-value input { font-size: 40px; }
+}
+@media (max-width: 400px) {
+  .token-input-value input { font-size: 32px; }
+}

@@ -1,0 +1,32 @@
+.room-entry, .room-controls { min-width: 0; }
+.lobby-section, .room-controls { background: var(--card); border: 1px solid var(--line-strong); border-radius: var(--arena-radius); }
+.room-entry { display: flex; --arena-number: 40px; }
+.lobby-section { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.entry-view { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.create-room, .join-room { display: flex; flex-direction: column; padding: var(--space-2) var(--space-3) var(--space-3); min-width: 0; }
+.entry-header { display: flex; align-items: center; padding: var(--space-3) var(--space-3) 0; }
+.entry-modes.segmented { width: 100%; padding: var(--space-1); border-radius: var(--radius); background: var(--inset); }
+.entry-modes.segmented::before { inset: 4px auto 4px 4px; width: calc((100% - 8px) / 2); height: auto; border-radius: var(--control-radius); background: var(--surface-raised); }
+.entry-modes.segmented button { flex: 1; min-height: 40px; border-radius: var(--control-radius); font-size: var(--text-small); }
+.entry-modes button svg { flex-shrink: 0; }
+.entry-footer { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-1) 0; }
+.entry-footer .field-help { margin: 0; color: var(--muted-foreground); font-size: var(--text-small); line-height: 1.7; }
+.field-help { margin: 0 0 var(--space-4); }
+.field-error { color: var(--negative); font-size: var(--text-small); margin: var(--space-3) 0 0; overflow-wrap: anywhere; }
+.availability { color: var(--muted-foreground); font-size: var(--text-small); margin: var(--space-3) 0 var(--space-1); text-align: center; text-wrap: balance; }
+.create-action { position: relative; width: 100%; justify-content: center; min-height: 48px; border-radius: var(--radius); }
+.entry-spinner { position: absolute; left: var(--space-4); }
+.invite-ticket { display: flex; flex-direction: column; justify-content: center; min-height: 248px; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--arena-radius); background: var(--inset); }
+.invite-symbol { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: var(--space-4); border: 1px solid var(--line-strong); border-radius: var(--radius); color: var(--accent); background: var(--card); }
+.form-heading { margin-bottom: var(--space-6); }
+.form-heading h2 { font: 500 24px/1.25 var(--font-display); letter-spacing: -.04em; margin-bottom: var(--space-2); }
+.form-heading p { font-size: var(--text-small); color: var(--muted-foreground); margin: 0; }
+.invite-ticket label { font-size: var(--text-small); color: var(--muted-foreground); }
+.invite-input { margin-top: var(--space-2); }
+.invite-input input { min-width: 0; margin: 0; min-height: 48px; font-size: 16px; background: var(--card); border-color: var(--line-strong); }
+.invite-input input[aria-invalid="true"] { border-color: var(--negative); }
+@media (prefers-reduced-motion: no-preference) {
+  .entry-spinner { animation: entry-spin 1s linear infinite; }
+  @keyframes entry-spin { to { transform: rotate(360deg); } }
+}
+@media (prefers-reduced-motion: reduce) { .entry-view { transform: none !important; opacity: 1 !important; } }

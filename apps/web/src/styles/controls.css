@@ -1,0 +1,52 @@
+button, .wallet-adapter-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-4); border: 1px solid transparent; border-radius: var(--control-radius); font: 600 var(--text-body)/1.2 var(--font-sans); background: var(--surface-raised); color: var(--foreground); cursor: pointer; white-space: nowrap; }
+button:disabled { color: var(--muted-foreground); cursor: not-allowed; }
+.button { border-color: var(--line-strong); background: var(--card); }
+.button.primary, .wallet-control .wallet-adapter-button-trigger { background: var(--primary); border-color: var(--primary-border); color: var(--primary-foreground); box-shadow: none; }
+.button-lg { min-height: 48px; font-size: var(--text-body); font-weight: 600; }
+.button-sm { min-height: 40px; padding-inline: var(--space-3); font-size: var(--text-small); }
+.button-icon { width: 40px; padding: 0; }
+.button.secondary { background: transparent; border-color: var(--line-strong); }
+.button.danger { background: var(--negative); color: var(--background); border-color: transparent; }
+.button:disabled, .button.secondary:disabled { background: var(--card); border-color: var(--line); color: var(--faint-foreground); box-shadow: none; }
+.button.primary:disabled, .wallet-control .wallet-adapter-button-trigger:disabled { background: var(--action-disabled); border-color: var(--control-edge); color: var(--muted-foreground); box-shadow: none; }
+.button.danger:disabled { background: var(--negative-surface); color: var(--negative); opacity: .7; }
+.quiet, .icon-button, .text-button { background: transparent; border-color: transparent; color: var(--muted-foreground); padding: 0 var(--space-2); box-shadow: none; }
+.icon-button { width: 40px; flex-shrink: 0; }
+.text-button { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong); }
+.link-button { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 40px; padding: 0; border: 0; background: transparent; color: var(--accent); font-weight: 600; }
+input:not([type="checkbox"]) { display: block; width: 100%; min-height: 44px; margin: 0; padding: 0 var(--space-3); border: 1px solid var(--input-border); border-radius: var(--control-radius); background: var(--inset); color: var(--foreground); font: 15px var(--font-sans); }
+input:not([type="checkbox"]):focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-color: var(--primary-border); }
+.segmented { position: relative; isolation: isolate; display: inline-grid; grid-template-columns: repeat(var(--segment-count), minmax(0, 1fr)); align-items: center; padding: 3px; border: 1px solid var(--line); border-radius: var(--control-radius); background: var(--inset); }
+.segmented::before { content: ""; position: absolute; z-index: -1; inset: 3px auto 3px 3px; width: calc((100% - 6px) / var(--segment-count)); transform: translateX(calc(var(--segment-index) * 100%)); border-radius: 6px; background: var(--surface-raised); opacity: 0; }
+.segmented[data-selected="true"]::before { opacity: 1; }
+.segmented button { min-height: 34px; min-width: 40px; padding: 0 var(--space-3); border: 1px solid transparent; border-radius: 6px; color: var(--muted-foreground); font-size: var(--text-small); background: transparent; }
+.segmented button[aria-pressed="true"] { background: transparent; color: var(--foreground); }
+.segmented[data-appearance="keys"] { padding: 0; gap: var(--space-2); border: 0; background: transparent; }
+.segmented[data-appearance="keys"]::before { display: none; }
+.segmented[data-appearance="keys"] button { min-height: 40px; border-radius: 6px; background: var(--inset); font-weight: 500; font-variant-numeric: tabular-nums; }
+.segmented[data-appearance="keys"] button[aria-pressed="true"] { background: var(--focus-wash); border-color: var(--accent-strong); color: var(--accent); }
+.segmented[data-appearance="tabs"] { border: 0; padding: 0; border-radius: 0; background: transparent; }
+.segmented[data-appearance="tabs"] button { position: relative; background: transparent; border: 0; border-radius: 0; min-height: 48px; padding-inline: 0; font-size: var(--text-body); font-weight: 500; }
+.segmented[data-appearance="tabs"] button[aria-pressed="true"] { color: var(--foreground); }
+.segmented[data-appearance="tabs"]::before { inset: auto auto -1px 0; width: calc(100% / var(--segment-count)); height: 2px; border-radius: 0; background: var(--accent); }
+@media (hover: hover) {
+  button:not(:disabled):hover { background-color: var(--muted); color: var(--foreground); }
+  .button:not(:disabled):hover { border-color: var(--input-border); }
+  .button.primary:not(:disabled):hover, .wallet-control .wallet-adapter-button-trigger:not(:disabled):hover { background: var(--primary-hover); color: var(--primary-foreground); border-color: var(--primary-hover); }
+  .button.danger:not(:disabled):hover { background: var(--negative); color: var(--background); border-color: transparent; filter: brightness(1.06); }
+  .quiet:not(:disabled):hover, .icon-button:not(:disabled):hover, .text-button:not(:disabled):hover { background: var(--card); }
+  .segmented button:not(:disabled):hover { background: var(--card); }
+  .segmented button[aria-pressed="true"]:hover { background: transparent; }
+  .segmented[data-appearance="keys"] button:not(:disabled):hover { border-color: var(--input-border); }
+  .segmented[data-appearance="keys"] button[aria-pressed="true"]:hover { background: var(--focus-wash); }
+  .segmented[data-appearance="tabs"] button:hover { background: transparent; color: var(--foreground); }
+  .link-button:not(:disabled):hover { background: transparent; color: var(--foreground); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .segmented::before { transition: transform 220ms var(--ease-out), opacity 100ms var(--ease-out); }
+  .button, .segmented button, .wallet-control .wallet-adapter-button-trigger { transition: background-color 100ms var(--ease-out), border-color 100ms var(--ease-out), transform 100ms var(--ease-out); }
+}
+@media (max-width: 600px) {
+  button, .wallet-adapter-button { min-height: 44px; }
+  .segmented button { min-height: 40px; }
+}
