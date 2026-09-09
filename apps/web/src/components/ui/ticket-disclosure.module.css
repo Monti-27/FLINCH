@@ -1,0 +1,18 @@
+.disclosure { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--inset); color: var(--muted-foreground); font-size: var(--text-small); }
+.disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 48px; padding: var(--space-3); border-radius: var(--radius); cursor: pointer; list-style: none; font-weight: 500; }
+.disclosure > summary::-webkit-details-marker { display: none; }
+.disclosure > summary:focus-visible { outline-offset: -3px; }
+.disclosure > summary svg { flex: none; }
+.disclosure[open] > summary svg { transform: rotate(180deg); }
+.body { padding: 0 var(--space-3) var(--space-3); }
+.body p { margin: 0 0 var(--space-2); font-size: var(--text-small); }
+.body p:last-child { margin: 0; }
+@media (hover: hover) { .disclosure > summary:hover { color: var(--foreground); background: var(--card); } }
+@media (prefers-reduced-motion: no-preference) {
+  .disclosure > summary svg { transition: transform 250ms var(--ease-out); }
+  @supports (interpolate-size: allow-keywords) {
+    .disclosure { interpolate-size: allow-keywords; }
+    .disclosure::details-content { height: 0; overflow: hidden; transition: height 300ms var(--ease-out), content-visibility 300ms allow-discrete; }
+    .disclosure[open]::details-content { height: auto; }
+  }
+}
