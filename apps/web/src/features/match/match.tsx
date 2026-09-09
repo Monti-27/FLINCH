@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import type { FlinchClient, TransactionSigner } from "@flinch/client";
 import { useRoom } from "./use-room.ts";
 import { Standoff } from "./standoff.tsx";
-import { estimatedTime, ROUND_DURATION_MS } from "./timer-state.ts";
 import { Sell } from "./sell.tsx";
 import { Funding } from "../lobby/funding.tsx";
 import { Claims } from "../claims/claims.tsx";
@@ -30,12 +29,13 @@ export function Match({ client, address, signer, enabled, busy, operation, run }
   if (!room) return <section className="panel brand-message" role="alert"><h2>Room unavailable</h2><p>{view.error ?? "Enter a room address to begin."}</p><p className="muted">Check the network and address. Reads retry automatically; no transaction is sent.</p></section>;
   const seat = signer ? room.ledger.wallets.findIndex(key => key.equals(signer.publicKey)) : -1;
   const elapsed = BigInt(Math.max(0, Math.floor((wallTime - view.observedAt) / 1000)));
-  const remainingMs = BigInt(room.ledger.economics ? estimatedTime(room.ledger.economics.startedAt, room.now, view.observedAt, wallTime) : ROUND_DURATION_MS);
+  const timerObservation = room.ledger.economics && view.timerObservedAt !== undefined
+    ? { startedAt: room.ledger.economics.startedAt, chainNow: room.now, receivedAt: view.timerObservedAt } : undefined;
   const stale = wallTime - view.observedAt > 5000;
   const controlNow = view.controlNow === undefined ? room.now : view.controlNow + BigInt(Math.max(0, Math.floor((wallTime - (view.controlObservedAt ?? wallTime)) / 1000)));
   const controls = <Funding client={client} room={room} signer={signer} session={session} remember={setSession} busy={busy} enabled={enabled} run={run} />;
   return <ArenaWorkspace
-    overview={<Standoff room={room} control={view.control} seat={seat} remainingMs={remainingMs} stale={stale} />}
+    overview={<Standoff room={room} control={view.control} seat={seat} timerObservation={timerObservation} stale={stale} />}
     players={<RoomSidebar room={room} control={view.control} seat={seat} onOpenSeat={room.ledger.phase === "funding" ? () => entry.current?.focus() : undefined} />}
     notice={(view.error || stale) && <p role="status" className="notice">{view.error ?? "Waiting for fresh chain state. SELL is paused."} Base claims and recovery remain separate.</p>}
     history={<><Receipts client={client} room={room} /><p className="chain-observation">Solana state confirmed at slot {room.slot}. Updated {elapsed.toString()}s ago.</p></>}

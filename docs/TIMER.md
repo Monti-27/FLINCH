@@ -1,5 +1,23 @@
 # Round timer
 
+## Shared countdown clock, 2026-09-11
+
+The live timer report reproduced as `67 → 64`: a fresh integer-second base Clock reading replaced the previous extrapolated value immediately. The ring then followed a separate 250ms tween, leaving its circumference behind the number. This section supersedes the observation-driven sweep and large-correction behavior below; the size, centered digits, colors and extending/retracting bars are unchanged.
+
+`room-observation.ts` now records a separate monotonic receipt timestamp immediately after the base read, before resolving the ER. It preserves that timestamp on base failures. Wall-clock timestamps, freshness checks, SELL authorization, quotes and transaction clocks are unchanged. The concurrent network-timeout recovery change in that file is separate from this timer fix.
+
+`countdown-clock.ts` seeds the presentation from the observed chain time minus elapsed monotonic time, including time spent waiting for ER resolution. Each fresh advancing sample adjusts a target deadline, not the displayed value. The shared estimate approaches corrections at at most 10% above or below real elapsed time. Repeated, backwards and out-of-order samples cannot move the deadline backwards or add displayed seconds. Missing observations do not restart or freeze the estimate. After a frame gap of at least five seconds, elapsed time is consumed immediately; missed seconds are not replayed. A fresh chain reading at or beyond expiry immediately clears the timer. Zero stays zero for the same round, and never implies settlement.
+
+`use-countdown.ts` advances one Framer Motion value using `performance.now()`. The dial fill/color and rounded-up seconds derive from that value; there is no separate progress tween. React updates the digits only when their whole second changes. Hidden documents skip frame work and catch up on visibility return. Funding remains full, confirmed terminal state/cancellation shows END, room changes reset the clock, and reduced motion removes the decorative springs without changing elapsed time. A stale estimate remains labelled and muted.
+
+Verification: the 35 focused clock/observation/overview tests pass, including the original jump, every second under jitter, duplicate/backwards reads, delayed delivery, suspension, zero latching and confirmed expiry. The full frontend suite has 474 passing tests, including concurrent network-recovery coverage; both TypeScript checks, production build, 381-module no-comment/size scan and 738-file selected secret/artifact scan pass. The optional bigint native binding warning still falls back to the existing pure-JavaScript implementation.
+
+Browser evidence: `artifacts/runs/timer-1789090641680/result.json`. The live irregular-sample sequence is `67, 66, 65, 64, 63, 62, 61, 60, 59`, sampled across 481 frames with zero layout shift and a maximum ring/number boundary difference of 17.18ms. It also checks 90 through zero, colors, bar motion, 320/375/768/1280px geometry, live reduced motion, system-clock changes, a controlled 20-second frame gap, stale recovery, confirmed expiry and room replacement. These are local real-component tests with synthetic timing inputs, not a new funded Devnet round. The initial browser rerun failed because the test tried an unsupported clock-uninstall API; the corrected test uses a fresh page.
+
+Final slowed-CPU run `timer-1789090803172` also passes with 4x CPU throttling, the same complete sequence, zero layout shift and a 17.26ms maximum boundary difference. It additionally verifies a simulated hidden-document stop and catch-up on visibility return. Production arena smoke `ui-smoke-1789090749822` passes responsive layout, keyboard, wallet picker, stake entry, chart controls, reduced motion, reload and outage recovery with no page errors. The temporary read-only port-3511 preview was stopped after validation.
+
+This patch is local only. No deployment, signing, custody cycle, live Devnet soak, faucet request, pool or financial-rule change was performed. Existing hosted gameplay and historical Devnet evidence are not claims that this timer revision has shipped.
+
 ## Centred dial refinement, 2026-09-11
 
 The follow-up request moves the rolling seconds into the ring, enlarges the SVG from 88px to 160px on desktop (116–140px on compact widths), and removes the timer's left border and padding. The ring and number share one grid cell; the digits fit inside the inner radius without changing position as they roll.

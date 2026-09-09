@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
-import { AnimatePresence, animate, motion, useMotionValue } from "framer-motion";
+import { AnimatePresence, motion, useTransform } from "framer-motion";
 import { useUi } from "../../providers/ui-provider.tsx";
 import { TimerDial } from "./timer-dial.tsx";
-import { ROUND_DURATION_MS, boundedTime } from "./timer-state.ts";
+import { ROUND_DURATION_MS } from "./timer-state.ts";
+import { useCountdown } from "./use-countdown.ts";
+import type { TimerObservation } from "./countdown-clock.ts";
 import styles from "./round-timer.module.css";
 
-type Props = { milliseconds: bigint; funding: boolean; ended: boolean; stale: boolean };
-const TIMING = { sweep: .25, digit: { type: "spring", stiffness: 380, damping: 34, mass: .8 } } as const;
+type Props = { milliseconds: bigint; funding: boolean; ended: boolean; stale: boolean; observation?: TimerObservation };
+const TIMING = { digit: { type: "spring", stiffness: 380, damping: 34, mass: .8 } } as const;
 
 function RollingSeconds({ seconds, reduced }: { seconds: number; reduced: boolean }) {
   const digits = String(seconds).padStart(2, "0");
@@ -23,27 +24,17 @@ function RollingSeconds({ seconds, reduced }: { seconds: number; reduced: boolea
   </strong>;
 }
 
-export function RoundTimer({ milliseconds, funding, ended, stale }: Props) {
+export function RoundTimer({ milliseconds, funding, ended, stale, observation }: Props) {
   const reduced = useUi(state => state.reducedMotion);
-  const remaining = ended ? 0 : funding ? ROUND_DURATION_MS : boundedTime(milliseconds);
-  const seconds = Math.ceil(remaining / 1000);
-  const ratio = remaining / ROUND_DURATION_MS;
-  const progress = useMotionValue(ratio);
+  const { remaining, seconds } = useCountdown(milliseconds, funding, ended, observation);
+  const progress = useTransform(remaining, value => value / ROUND_DURATION_MS);
   const state = ended ? "ended" : funding ? "ready" : stale ? "stale" : seconds <= 10 ? "urgent" : "running";
   const label = ended ? "Round ended" : funding ? "Round duration" : stale ? "Estimate · stale" : "Time left · estimated";
-  useEffect(() => {
-    if (reduced || funding || ended || stale || Math.abs(progress.get() - ratio) > .05) {
-      progress.set(ratio);
-      return;
-    }
-    const playback = animate(progress, ratio, { duration: TIMING.sweep, ease: "linear" });
-    return () => playback.stop();
-  }, [ratio, reduced, funding, ended, stale, progress]);
-  return <div className={styles.timer} data-state={state} data-remaining-ms={remaining} data-reduced-motion={reduced}
+  return <div className={styles.timer} data-state={state} data-remaining-ms={Math.round(remaining.get())} data-reduced-motion={reduced}
     role="timer" aria-live="off" aria-label={ended ? "Round ended" : funding ? "Round duration, 90 seconds" : `${stale ? "Stale estimate" : "Estimated time left"}, ${seconds} seconds`}>
     <span className={styles.label}>{label}</span>
     <div className={styles.readout}>
-      <TimerDial progress={progress} muted={ended || stale && !funding} animated={!reduced && !stale && !funding && !ended && remaining > 0} />
+      <TimerDial progress={progress} muted={ended || stale && !funding} animated={!reduced && !stale && !funding && !ended && seconds > 0} />
       {ended ? <strong className={styles.end} aria-hidden="true">END</strong> : <RollingSeconds seconds={seconds} reduced={reduced || stale || funding} />}
     </div>
   </div>;
