@@ -14,7 +14,7 @@ import type { BaseRoom } from "./model.ts";
 import { controlAddress } from "./addresses.ts";
 import { findReturnProof } from "./commitment.ts";
 import { transactionStatus } from "./transactions.ts";
-import { check } from "./errors.ts";
+import { check, ClientError } from "./errors.ts";
 import { readQuotePool } from "./quotes/read.ts";
 import { quoteSell } from "./quotes/sell.ts";
 import { readReceipts } from "./accounts/receipts.ts";
@@ -26,7 +26,7 @@ export class FlinchClient {
   readonly instructions;
   readonly programId;
   private readonly program;
-  private readonly ready: Promise<void>;
+  private networkVerification?: Promise<void>;
   readonly config: ClientConfig;
   readonly resolver: PlacementResolver;
 
@@ -38,23 +38,30 @@ export class FlinchClient {
     this.base = connection(config.baseUrl, config.network);
     this.program = createProgram(this.base, this.programId);
     this.instructions = { ...custodyInstructions(this.program), ...controlInstructions(this.program) };
-    this.ready = verifyNetwork(this.base, config.network, config.expectedGenesis);
-    void this.ready.catch(() => undefined);
+    void this.ready().catch(() => undefined);
+  }
+
+  private ready(): Promise<void> {
+    this.networkVerification ??= verifyNetwork(this.base, this.config.network, this.config.expectedGenesis).catch(error => {
+      if (!(error instanceof ClientError)) this.networkVerification = undefined;
+      throw error;
+    });
+    return this.networkVerification;
   }
 
   async readRoom(ledger: PublicKey, minContextSlot?: number) {
-    await this.ready;
+    await this.ready();
     return readBaseRoom(this.base, ledger, minContextSlot, this.programId);
   }
 
   async resolve(room: BaseRoom, signal?: AbortSignal) {
-    await this.ready;
+    await this.ready();
     return resolveRoom(room, this.resolver, url => connection(endpoint(url, this.config.network, true), this.config.network), signal,
       minSlot => this.readRoom(room.ledger.address, minSlot), this.programId);
   }
 
   async execute(ledger: PublicKey, revision: bigint, payer: PublicKey, pool: PublicKey) {
-    await this.ready;
+    await this.ready();
     return executeInstruction(this.program, ledger, revision, payer, await readPoolAccounts(this.base, pool));
   }
 
@@ -65,17 +72,17 @@ export class FlinchClient {
   }
 
   async returnProof(room: BaseRoom) {
-    await this.ready;
+    await this.ready();
     return findReturnProof(this.base, controlAddress(room.ledger.address, this.programId)[0], room.slot, this.programId);
   }
 
   async receipts(room: BaseRoom) {
-    await this.ready;
+    await this.ready();
     return readReceipts(this.base, room, this.programId);
   }
 
   async status(runtime: "base" | "er", url: string, signature: string) {
-    await this.ready;
+    await this.ready();
     const validated = endpoint(url, this.config.network, runtime === "er");
     check(runtime !== "base" || validated === this.base.rpcEndpoint, "Base journal endpoint differs from configuration");
     return transactionStatus(runtime === "base" ? this.base : connection(validated, this.config.network), signature);
