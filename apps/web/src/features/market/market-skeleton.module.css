@@ -1,0 +1,16 @@
+.chart { position: absolute; z-index: 2; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr) 48px; grid-template-rows: minmax(0, 1fr) 20px; gap: var(--space-4) var(--space-3); padding: var(--space-5) var(--space-3) var(--space-2); background: var(--chart); }
+.plot { position: relative; min-width: 0; min-height: 0; }
+.plot > span:first-child { --skeleton-base: color-mix(in srgb, var(--foreground) 4%, transparent); --skeleton-highlight: color-mix(in srgb, var(--foreground) 7%, transparent); border-radius: var(--chip-radius); }
+.message { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-4); color: var(--muted-foreground); text-align: center; font-size: var(--text-small); }
+.prices { display: flex; flex-direction: column; justify-content: space-between; padding-block: var(--space-1); }
+.times { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.price { justify-content: center; }
+.toolbar { min-height: 50px; overflow: hidden; }
+.footerControl { display: flex; align-items: center; min-height: 40px; }
+@container (max-width: 560px) {
+  .times > span:nth-child(even) { display: none; }
+  .toolbar > span:nth-child(2) { width: 40px !important; }
+}
+@media (max-width: 600px) {
+  .price > span[data-skeleton]:nth-child(2) { height: 24px !important; }
+}
