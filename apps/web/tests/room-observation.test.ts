@@ -5,14 +5,15 @@ import { readRoomView } from "../src/features/match/room-observation.ts";
 import type { RoomView } from "../src/features/match/room-observation.ts";
 import { control, snapshot } from "../../../tests/keeper/fixtures.ts";
 
-afterEach(() => vi.useRealTimers());
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 function fixture() {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(1000);
+  vi.spyOn(performance, "now").mockReturnValue(200);
   const room = snapshot();
   const current = control(room);
-  const previous: RoomView = { room, control: current, observedAt: 500, controlNow: 101n, controlObservedAt: 600, loading: false };
+  const previous: RoomView = { room, control: current, observedAt: 500, timerObservedAt: 100, controlNow: 101n, controlObservedAt: 600, loading: false };
   const client = {
     readRoom: vi.fn(async () => room),
     resolve: vi.fn(async () => ({ connection: new Connection("http://127.0.0.1:17799"),
@@ -28,6 +29,7 @@ it("retains the last confirmed balances and their original age after a base read
   const view = await readRoomView(f.client, f.room.ledger.address.toBase58(), f.previous, f.signal);
   expect(view.room).toBe(f.room);
   expect(view.observedAt).toBe(500);
+  expect(view.timerObservedAt).toBe(100);
   expect(view.control).toBeUndefined();
   expect(view.controlNow).toBeUndefined();
   expect(view.loading).toBe(false);
@@ -51,9 +53,10 @@ it("keeps fresh Solana claims visible when the ER fails without making base read
 it("records base and ER observations independently", async () => {
   const f = fixture();
   const resolved = await f.client.resolve();
-  f.client.resolve.mockImplementation(async () => { vi.setSystemTime(1400); return resolved; });
+  f.client.resolve.mockImplementation(async () => { vi.setSystemTime(1400); vi.mocked(performance.now).mockReturnValue(600); return resolved; });
   const view = await readRoomView(f.client, f.room.ledger.address.toBase58(), f.previous, f.signal);
   expect(view.observedAt).toBe(1000);
+  expect(view.timerObservedAt).toBe(200);
   expect(view.controlObservedAt).toBe(1400);
   expect(view.controlNow).toBe(102n);
   expect(view.error).toBeUndefined();
@@ -91,4 +94,41 @@ it("initial failures remain empty instead of inventing a room", async () => {
   expect(view.room).toBeUndefined();
   expect(view.observedAt).toBe(0);
   expect(view.loading).toBe(false);
+});
+
+it("explains an initial timeout and clears the message when the next read succeeds", async () => {
+  const f = fixture();
+  f.client.readRoom.mockRejectedValueOnce(new DOMException("Signal timed out", "TimeoutError"));
+  const failed = await readRoomView(f.client, f.room.ledger.address.toBase58(), { loading: true, observedAt: 0 }, f.signal);
+  expect(failed.error).toBe("The network took too long to respond. Retrying automatically.");
+  expect(failed.room).toBeUndefined();
+  expect(failed.observedAt).toBe(0);
+  expect(failed.loading).toBe(false);
+  const recovered = await readRoomView(f.client, f.room.ledger.address.toBase58(), failed, f.signal);
+  expect(recovered.room).toBe(f.room);
+  expect(recovered.control).toBe(f.current);
+  expect(recovered.error).toBeUndefined();
+});
+
+it("a timed-out refresh retains confirmed balances without retaining stale ER control", async () => {
+  const f = fixture();
+  f.client.readRoom.mockRejectedValueOnce(new DOMException("Signal timed out", "TimeoutError"));
+  const view = await readRoomView(f.client, f.room.ledger.address.toBase58(), f.previous, f.signal);
+  expect(view.error).toBe("The network took too long to respond. Retrying automatically.");
+  expect(view.room).toBe(f.room);
+  expect(view.observedAt).toBe(500);
+  expect(view.control).toBeUndefined();
+  expect(view.controlNow).toBeUndefined();
+  expect(view.controlObservedAt).toBeUndefined();
+});
+
+it("does not report a timeout as a retry when the room read was cancelled", async () => {
+  const f = fixture();
+  const abort = new AbortController();
+  f.client.readRoom.mockImplementation(async () => {
+    abort.abort();
+    throw new DOMException("Signal timed out", "TimeoutError");
+  });
+  await expect(readRoomView(f.client, f.room.ledger.address.toBase58(), f.previous, abort.signal)).rejects.toMatchObject({ name: "AbortError" });
+  expect(f.client.resolve).not.toHaveBeenCalled();
 });
