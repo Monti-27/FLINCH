@@ -1,5 +1,7 @@
 .ticket { margin-block: var(--space-3); }
+.ticket[data-automatic="true"] { margin-block: var(--space-2); }
 .connector { position: relative; z-index: 1; display: grid; place-items: center; width: 28px; height: 28px; margin: -6px auto; border: 3px solid var(--card); border-radius: 50%; background: var(--surface-raised); color: var(--muted-foreground); }
+.ticket[data-automatic="true"] .connector { margin-block: calc(-1 * var(--space-3)); }
 .estimate { display: inline-flex; flex-direction: column; align-items: flex-end; font-size: clamp(15px, 6cqi, 20px); line-height: 1.1; }
 .estimate > span { color: var(--muted-foreground); font: 400 10px/1.2 var(--font-sans); letter-spacing: 0; }
 .empty { display: block; color: var(--muted-foreground); font: 400 var(--text-small)/1.5 var(--font-sans); letter-spacing: 0; }
@@ -11,6 +13,7 @@
 .ticket .quote dt { color: var(--muted-foreground); }
 .ticket .quote dd { text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .ticket .quote .minimum { margin: var(--space-3) var(--space-1); }
+.ticket[data-automatic="true"] .quote .minimum { margin-block: var(--space-1); }
 .quote > button { width: 100%; border-radius: var(--radius); }
 .refresh { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 56px; }
 .refresh > span { font-size: var(--text-small); color: var(--muted-foreground); }

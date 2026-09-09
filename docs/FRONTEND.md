@@ -1,5 +1,9 @@
 # FLINCH frontend
 
+## Automatic sell quotes, 2026-09-11
+
+`features/match/quote-feed.ts` owns coalesced read-only refresh, retained estimates, bounded failure backoff and cancellation. `use-sell-quote.ts` scopes it by client, room, seat and wallet and pauses hidden/offline or ineligible views. The SELL ticket keeps one stable action instead of requiring a manual two-second quote refresh. Approvals freeze its displayed minimum; the request reads fresh pool state before signing and sending without lowering that minimum or changing the signed bytes. Claims remain independent base-ledger transfers. Read QUOTES for exact bindings and limits, and TESTING for current evidence and deployment status.
+
 ## Arena skeletons, 2026-09-11
 
 `/play` now reserves its arena layout during startup and initial room reads, with independent chart-code/history and price placeholders. Quote and receipt reads use matching shapes. A reusable token-colored shimmer stops for reduced motion; known chart history and same-room receipts remain visible during background refreshes. Failed reads keep recovery controls. Shared layout, timer and stake-control geometry prevent loading-only redesigns. See [loading states](LOADING_STATES.md) for ownership, sequence, browser checks and scope limits. No signing, routing or economic rules changed.
@@ -198,7 +202,7 @@ The journal stores the last operation per wallet/network/room/runtime, with a se
 
 Joining wraps the exact stake and can atomically create/bind a ten-minute session. Session top-up is the queried zero-data-account rent exemption plus 100,000 lamports for fees; session-token account rent is additional. This is not a session spending allowance. Session secrets stay in memory. After reload, wallet mode remains and the public bound signer allows deriving/revoking the session token through the pinned SDK. A base revocation confirmation does not prove immediate ER revocation visibility.
 
-SELL presents an estimate range, maximum game penalty, immutable positive minimum, 1% slippage and two-second expiry. After signing, expired quotes are rejected before send and marked `not_sent`; unknown network outcomes remain pending. Wallet approval can outlast the quote, requiring an explicit refresh. Sessions are the intended low-friction path. No quote is silently lowered or re-signed.
+SELL presents an automatically refreshed estimate range, maximum game penalty, positive minimum and 1% slippage. Each observation still expires after two seconds. Pressing SELL freezes the approved minimum; fresh reads before signing and sending must still cover it. Known pre-send validation failures are `not_sent`; unknown network outcomes remain pending. Wallet approval can outlast an observation without requiring another signature if the fresh price and position remain compatible. Sessions remain the low-friction path. No minimum is silently lowered and no operation is automatically re-signed.
 
 The Coinbase reference chart is implemented; verified MagicBlock oracle display remains unimplemented. No fake price or fallback fill is displayed. Full fee/rent estimation before every wallet approval, hosted-service error translation and stronger cross-tab/reconnect testing remain improvements before release.
 

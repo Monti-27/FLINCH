@@ -58,6 +58,8 @@ it("keeps cancelled revocation distinct from a revoked onchain session", () => {
 
 it.each([
   ["Quote expired", "Quote expired", "warning"], ["AccountNotFound", "Account not found", "error"],
+  ["Price moved below your approved minimum", "Price moved", "warning"],
+  ["Position changed; review a new sell quote", "Position changed", "warning"],
   ["Insufficient funds for rent", "Not enough SOL", "error"], ["Wallet changed during signing", "Wallet request changed", "error"],
   ["Wrong genesis", "Wrong network", "error"], ["local storage unavailable", "Transaction history unavailable", "warning"],
   ["Transaction preview was rejected", "Transaction preview failed", "error"],

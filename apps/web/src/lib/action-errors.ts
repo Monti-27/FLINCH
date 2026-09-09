@@ -42,8 +42,12 @@ export function actionErrorNotification(error: unknown, context: ActionErrorCont
       : context.action === "Revoke session" ? "Revocation wasn't sent. The local session is stopped, but its onchain permission may still be active."
         : "You cancelled in your wallet. This request wasn't submitted." };
   const detail = errorChain(error).map(entry => typeof entry.message === "string" ? entry.message : "").join(" ");
+  if (/Price moved below your approved minimum/i.test(detail)) return { tone: "warning", title: "Price moved",
+    description: "Your minimum was protected and no sale was sent. Review the updated quote before selling again." };
+  if (/(?:Position|Cohort) changed; review a new sell quote/i.test(detail)) return { tone: "warning", title: "Position changed",
+    description: "No sale was sent. Wait for the current round state, then review the updated quote." };
   if (/quote.*(?:expired|stale)|cohort.*closed/i.test(detail)) return { tone: "warning", title: "Quote expired",
-    description: "Get a fresh quote, then approve it in your wallet. Refreshing won't submit a sale." };
+    description: "No sale was sent. Quotes refresh automatically; try SELL again when the connection is ready." };
   if (/insufficient.*(?:lamports|\bSOL\b|rent)|not enough.*(?:lamports|\bSOL\b)|no record of a prior credit/i.test(detail)) return { tone: "error", title: "Not enough SOL",
     description: "Your wallet needs SOL on this network for the stake, fees and account rent." };
   if (/insufficient|not enough/i.test(detail)) return { tone: "error", title: "Insufficient balance",

@@ -52,3 +52,21 @@ it("shows a quote-shaped placeholder only during the actual reserve read", () =>
   expect(html).not.toContain("Estimated proceeds");
   expect(renderToStaticMarkup(<SellTicket {...base} />)).not.toContain("data-skeleton");
 });
+
+it("keeps automatic SELL usable through refresh while the protected request obtains a new quote", () => {
+  const html = renderToStaticMarkup(<SellTicket {...base} automatic loading quote={quote()} />);
+  expect(html).toContain("Quotes refresh automatically");
+  expect(html).toContain("Minimum you receive");
+  expect(html).not.toContain("Quote expired");
+  expect(html).not.toContain("Refresh quote");
+  expect(html).not.toMatch(/disabled=""[^>]*>Queue SELL/);
+  expect(html).not.toContain("data-skeleton");
+});
+
+it("keeps the approved minimum static and blocks duplicate sells while approval is open", () => {
+  const html = renderToStaticMarkup(<SellTicket {...base} automatic busy quote={quote()} />);
+  expect(html).toContain("Your approved minimum");
+  expect(html).toContain("Checking price &amp; approval");
+  expect(html).toMatch(/disabled=""[^>]*>Queue SELL/);
+  expect(html).toContain('aria-busy="true"');
+});
