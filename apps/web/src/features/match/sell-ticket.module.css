@@ -1,0 +1,40 @@
+.ticket { --ticket-radius: 16px; --ticket-feedback: 150ms; margin-block: var(--space-4); }
+.balance, .receive { padding: var(--space-4); border-radius: var(--ticket-radius); background: var(--inset); }
+.asset { display: flex; align-items: center; gap: var(--space-2); color: var(--foreground); font-size: var(--text-small); font-weight: 600; }
+.symbol { margin-left: auto; color: var(--faint-foreground); font-weight: 400; }
+.balance > span { margin-top: var(--space-3); }
+.balance p { margin-block: var(--space-1) 0; }
+.connector { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; margin: -8px auto; border: 4px solid var(--card); border-radius: 50%; background: var(--surface-raised); color: var(--muted-foreground); }
+.receive { padding-top: var(--space-5); }
+.estimate { margin: var(--space-3) 0 0; font: 500 22px/1.3 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.03em; overflow-wrap: anywhere; }
+.estimate > span { color: var(--muted-foreground); padding-inline: var(--space-1); }
+.quoteLoading { display: grid; gap: var(--space-1); margin-top: var(--space-3); }
+.receive:not([data-quoted="true"]) .estimate { font: 400 var(--text-small)/1.5 var(--font-sans); letter-spacing: 0; margin-top: var(--space-2); }
+.receive:not([data-quoted="true"]) .estimate > span { padding: 0; }
+.receive > span { color: var(--muted-foreground); display: block; margin-top: var(--space-1); }
+.quoteAction { width: 100%; margin-top: var(--space-4); justify-content: space-between; }
+.ticket .quote { margin: var(--space-3) 0 0; padding: 0; border: 0; background: transparent; }
+.ticket .quote dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); margin: 0; }
+.ticket .quote dt, .ticket .quote dd { padding: 0; margin: 0; border: 0; font-size: var(--text-small); line-height: 1.5; }
+.ticket .quote dt { color: var(--muted-foreground); }
+.ticket .quote dd { text-align: right; font-family: var(--font-mono); overflow-wrap: anywhere; }
+.ticket .quote .minimum { margin-bottom: var(--space-4); }
+.quote > button { width: 100%; justify-content: space-between; }
+.refresh { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 56px; }
+.refresh > span { font-size: var(--text-small); color: var(--muted-foreground); }
+.refresh > span[data-tone="expired"] { color: var(--negative); }
+.refresh > button { flex-shrink: 0; padding-inline: var(--space-2); border-color: transparent; }
+.details { border-top: 1px solid var(--line); font-size: var(--text-small); color: var(--muted-foreground); }
+.details summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; cursor: pointer; list-style: none; }
+.details summary::-webkit-details-marker { display: none; }
+.details[open] summary svg { transform: rotate(180deg); }
+.details p { margin-bottom: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .details summary svg { transition: transform var(--ticket-feedback) var(--ease-out); }
+  .receive { transition: background-color var(--ticket-feedback) var(--ease-out); }
+}
+@media (max-width: 600px) {
+  .balance > span { margin-top: var(--space-3); }
+  .balance, .receive { padding: var(--space-3); }
+  .receive { padding-top: var(--space-4); }
+}

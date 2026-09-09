@@ -1,0 +1,41 @@
+.timer {
+  --dial-blue: #648bfa;
+  --dial-green: #65bd83;
+  --dial-amber: #e9a052;
+  --dial-size: 160px;
+  --digit-size: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  width: var(--dial-size);
+  flex: none;
+}
+.label { color: var(--muted-foreground); font: 500 var(--text-small)/1.4 var(--font-sans); text-align: center; }
+.readout { display: grid; place-items: center; width: var(--dial-size); height: var(--dial-size); }
+.readout > * { grid-area: 1 / 1; }
+.dial { display: block; width: var(--dial-size); height: var(--dial-size); flex: none; overflow: visible; }
+.track, .ray { stroke-width: 1.1; stroke-linecap: round; }
+.track { stroke: var(--surface-raised); }
+.ray { stroke: currentColor; }
+.number, .end { display: inline-flex; align-items: baseline; color: var(--foreground); font: 500 var(--digit-size)/1.1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.05em; }
+.number { gap: 0; }
+.digit { position: relative; display: inline-block; width: .62em; height: 1.1em; overflow: hidden; }
+.digit::before { content: "0"; visibility: hidden; }
+.glyph { position: absolute; inset: 0; display: block; text-align: center; }
+.unit { margin-left: var(--space-1); color: var(--muted-foreground); font: 500 var(--text-body)/1 var(--font-sans); letter-spacing: 0; }
+.end { min-width: 1.5em; color: var(--muted-foreground); font-size: calc(var(--digit-size) * .7); letter-spacing: -.04em; }
+.timer[data-state="stale"] .number { color: var(--muted-foreground); }
+@media (max-width: 760px) {
+  .timer { --dial-size: 140px; --digit-size: 36px; }
+}
+@media (max-width: 600px) {
+  .timer { --dial-size: 128px; --digit-size: 32px; }
+  .unit { font-size: var(--text-small); }
+}
+@media (max-width: 360px) {
+  .timer { --dial-size: 116px; --digit-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glyph { transform: none !important; opacity: 1 !important; }
+}

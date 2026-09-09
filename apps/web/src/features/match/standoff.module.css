@@ -1,0 +1,20 @@
+.bar { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); min-width: 0; padding: 0; }
+.identity { min-width: 0; }
+.eyebrow { display: block; margin-bottom: var(--space-3); color: var(--accent); font: 500 var(--text-small)/1.4 var(--font-sans); letter-spacing: .06em; }
+.identity h1 { font: 500 clamp(32px, 3.3vw, 48px)/1.08 var(--font-display); letter-spacing: -.05em; text-wrap: balance; }
+.identity p { margin: var(--space-3) 0 0; color: var(--muted-foreground); font-size: var(--text-lead); letter-spacing: -.015em; }
+.meta { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin-top: var(--space-3); font-size: var(--text-small); color: var(--muted-foreground); }
+.stats { display: flex; align-items: center; gap: var(--space-10); flex-shrink: 0; }
+.address { font-size: var(--text-small); }
+.address button { padding: 0; min-height: 40px; color: var(--muted-foreground); }
+.bar[data-room="true"] .meta { margin-top: var(--space-1); }
+.bar[data-room="true"] .eyebrow { margin-bottom: var(--space-2); }
+@media (max-width: 760px) {
+  .stats { gap: var(--space-4); }
+}
+@media (max-width: 600px) {
+  .bar { gap: var(--space-3); padding: 0; }
+  .identity h1 { font-size: clamp(26px, 6.4vw, 32px); }
+  .eyebrow { margin-bottom: var(--space-2); font-size: var(--text-small); }
+  .identity p { margin-top: var(--space-2); font-size: var(--text-small); }
+}
