@@ -8,7 +8,9 @@ export const DEVNET = Object.freeze({
   routerUrl: "https://devnet-router.magicblock.app/",
   pool: new PublicKey("GoZmddUBTdiyRoGZSfxwX8p5ZNoVhDo42YN996JdDwoi"),
   validator: new PublicKey("MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57"),
-  raydiumHash: "c5ba03746795b128cdfb38af41bbef130dc6d38cff532e03b208c938a8787a82",
+  raydiumHash: "8d479aa24b5472687ab540a6c9e4581a36095c03b3c1575b515b38d5bfced0f1",
+  sessionHash: "bc2209916d7a5e39738359a9891e00de89af4c254d8f288c5ec9752e64fee449",
+  delegationHash: "e940763c05d5151ac3f6fa4b0ee4c882361eff653fa25e19bc6087e908d1b4fd",
 });
 
 export const devnetEndpoint = () => endpoint(process.env.FLINCH_DEVNET_RPC ?? DEVNET.baseUrl, "devnet");

@@ -4,18 +4,26 @@ import { open } from "node:fs/promises";
 import { DEVNET } from "./settings.ts";
 import { probeDevnet } from "./probe.ts";
 import { privateDirectory, readKey } from "./private-files.ts";
+import { stageRelease } from "./release.ts";
+import { acquireJournal } from "../../apps/keeper/src/runtime/lease.ts";
 
 export async function deployDevnet(directory: string, execute: boolean) {
   if (!execute) throw new Error("Deployment requires --execute-devnet");
   const location = await privateDirectory(directory);
+  const release = await acquireJournal(resolve(location, "deployment-lock"));
+  try { return await deployLocked(location); } finally { await release(); }
+}
+
+async function deployLocked(location: string) {
   const before = await probeDevnet(location);
   if (before.deployed) return { alreadyDeployed: true, program: before.program, bytecodeVerified: true };
-  if (before.balance < before.budget.requested) throw new Error("Deployment wallet is below the prepared funding budget");
+  if (before.balance < before.remainingBudget) throw new Error("Deployment wallet is below the prepared funding budget");
   await readKey(resolve(location, "buffer.json"));
+  const binary = await stageRelease(location, before.binary);
   const output = await open(resolve(location, `deploy-${Date.now()}.log`), "wx", 0o600);
   try {
     const child = spawn("solana", ["--url", before.baseUrl, "--keypair", resolve(location, "deployer.json"),
-      "program", "deploy", resolve(location, "build/flinch_v2.so"), "--program-id", resolve(location, "build/flinch_v2-keypair.json"),
+      "program", "deploy", binary, "--program-id", resolve(location, "build/flinch_v2-keypair.json"),
       "--buffer", resolve(location, "buffer.json"), "--upgrade-authority", resolve(location, "deployer.json"),
       "--fee-payer", resolve(location, "deployer.json"), "--max-len", String(before.binary.bytes), "--use-rpc", "--with-compute-unit-price", "0", "--output", "json"],
     { stdio: ["ignore", output.fd, output.fd] });

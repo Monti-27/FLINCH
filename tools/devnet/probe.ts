@@ -6,7 +6,7 @@ import { connection, verifyNetwork, readQuotePool, quoteExactInput, RAYDIUM_ID, 
 import { rpcRequest, isRecord } from "../../packages/client/src/routing/rpc.ts";
 import { DEVNET, devnetEndpoint } from "./settings.ts";
 import { privateDirectory, readKey, writePrivate } from "./private-files.ts";
-import { deployedProgram, hash, matchesBinary } from "./program-data.ts";
+import { deployedProgram, deploymentBuffer, hash, matchesBinary } from "./program-data.ts";
 import { fundingBudget } from "./budget.ts";
 
 const SESSION_PROGRAM = new PublicKey("KeyspM2ssCJbqUhQ4k7sveSiY4WjnYsrXkC8oDbwde5");
@@ -17,6 +17,7 @@ export async function probeDevnet(directory: string) {
   const location = await privateDirectory(directory);
   const programKey = await readKey(resolve(location, "build/flinch_v2-keypair.json"), DEVNET.program);
   const deployer = await readKey(resolve(location, "deployer.json"));
+  const bufferKey = await readKey(resolve(location, "buffer.json"));
   const binary = await readFile(resolve(location, "build/flinch_v2.so"));
   const idl = JSON.parse(await readFile(resolve(location, "build/flinch_v2.json"), "utf8"));
   if (idl.address !== programKey.publicKey.toBase58() || binary.subarray(0, 4).toString("hex") !== "7f454c46") throw new Error("Devnet build identity differs");
@@ -24,12 +25,14 @@ export async function probeDevnet(directory: string) {
   if (JSON.stringify(idl) !== JSON.stringify(clientIdl)) throw new Error("Devnet ABI differs from the reviewed client");
   const base = connection(devnetEndpoint(), "devnet");
   await verifyNetwork(base, "devnet", DEVNET.genesis);
-  const [flinch, raydium, session, delegation, pool] = await Promise.all([
+  const [flinch, raydium, session, delegation, pool, buffer] = await Promise.all([
     deployedProgram(base, DEVNET.program), deployedProgram(base, RAYDIUM_ID), deployedProgram(base, SESSION_PROGRAM),
-    base.getAccountInfo(DELEGATION_PROGRAM_ID, "confirmed"), readQuotePool(base, DEVNET.pool),
+    deployedProgram(base, DELEGATION_PROGRAM_ID), readQuotePool(base, DEVNET.pool),
+    deploymentBuffer(base, bufferKey.publicKey, deployer.publicKey, binary.length),
   ]);
   if (!raydium || raydium.hash !== DEVNET.raydiumHash) throw new Error("Raydium bytecode changed; review before deploying");
-  if (!session || !delegation?.executable) throw new Error("Required devnet programs are unavailable");
+  if (!session || session.hash !== DEVNET.sessionHash || !delegation || delegation.hash !== DEVNET.delegationHash)
+    throw new Error("Session or delegation bytecode differs from the tested runtime");
   if (flinch && (!matchesBinary(flinch.bytes, binary) || flinch.authority !== deployer.publicKey.toBase58())) throw new Error("Existing FLINCH deployment differs");
   const identity = await rpcRequest(DEVNET.routerUrl, "getIdentity", []);
   if (!isRecord(identity) || identity.identity !== DEVNET.validator.toBase58() || typeof identity.fqdn !== "string") throw new Error("Router selection differs from the prepared validator");
@@ -52,10 +55,11 @@ export async function probeDevnet(directory: string) {
   if (!Number.isSafeInteger(balance) || balance < 0) throw new Error("Invalid balance response");
   return { checkedAt: new Date().toISOString(), network: "devnet", genesis: DEVNET.genesis, baseUrl: base.rpcEndpoint,
     program: DEVNET.program.toBase58(), deployer: deployer.publicKey.toBase58(), balance: BigInt(balance), binary: { bytes: binary.length, sha256: hash(binary) },
-    deployed: !!flinch, flinch: publicProgram(flinch), raydium: publicProgram(raydium), session: publicProgram(session),
+    deployed: !!flinch, flinch: publicProgram(flinch), raydium: publicProgram(raydium), session: publicProgram(session), delegation: publicProgram(delegation), buffer,
     router: { validator: identity.identity, endpoint: erUrl, services: status, liveRoomPlacementVerified: false },
     pool: { address: DEVNET.pool.toBase58(), inputReserve: pool.inputReserve, outputReserve: pool.outputReserve, tradeFeeRate: pool.tradeFeeRate,
       quoteForOneMilliSol: quoteExactInput(pool, 1_000_000n), maximumBatchQuote: maxBatch, slot: pool.slot }, budget,
+    remainingBudget: budget.total - (buffer.funded > budget.temporaryBufferRent ? budget.temporaryBufferRent : buffer.funded),
     preFundingChecksPassed: true, endToEndVerified: false, remaining: ["deployment", "hosted room routing", "session propagation/revocation", "real swaps and claims", "ten sequential rounds", "real wallet extensions"],
     oracle: "Not used for execution. Coinbase is display-only; a live MagicBlock price-feed check remains separate." };
 }

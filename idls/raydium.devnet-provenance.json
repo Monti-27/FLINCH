@@ -1,0 +1,17 @@
+{
+  "network": "devnet",
+  "checkedDate": "2026-09-11",
+  "programId": "DRaycpLY18LhpbydsBWbVJtxpNv9oXPgjRSfpF2bWpYb",
+  "programData": "3KvTa2fYhMxMZNfHho5oX34yLQLwRauoU2JScBkugvXF",
+  "upgradeAuthority": "DRayw6sn9fCvbhx5ZLtAVGAgAk6qAAX7UT7urzkXTeM5",
+  "lastDeploySlot": 496232416,
+  "bytecodeLength": 742640,
+  "bytecodeSha256": "8d479aa24b5472687ab540a6c9e4581a36095c03b3c1575b515b38d5bfced0f1",
+  "artifact": "target/raydium-8d479aa2.so",
+  "previousProvenance": "raydium.provenance.json",
+  "reviewedProgramSource": "https://github.com/raydium-io/raydium-cp-swap/tree/59fb845a9e5bb569c8b2f3415f13b0c0ebcc6b92",
+  "review": "One upstream commit since the previous review. Anchor 1.0.2, administrative lamport collection, config fee-owner defaults and token CPI builder changes. Swap instruction, curve arithmetic and pool layouts are unchanged. The existing IDL remains the swap-subset contract, not a full IDL for the new admin instruction.",
+  "sourceBytecodeEquivalenceVerified": false,
+  "runtimeCompatibility": "All 23 LiteSVM tests passed with the FLINCH devnet-feature binary and this downloaded Raydium binary, including 12 fee and orientation quote cases, CPI rollback, authorization and claims.",
+  "publicDevnetSwapVerified": false
+}
