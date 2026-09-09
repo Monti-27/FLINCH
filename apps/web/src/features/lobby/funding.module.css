@@ -1,0 +1,25 @@
+.header { display: grid; gap: var(--space-1); padding: var(--space-1) var(--space-1) var(--space-4); }
+.header h2 { margin: 0; font: 500 22px/1.25 var(--font-display); letter-spacing: -.035em; }
+.header p { margin: 0; color: var(--muted-foreground); font-size: var(--text-small); }
+.facts { display: grid; gap: var(--space-2); margin: var(--space-3) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--line); font-size: var(--text-small); }
+.facts > div { display: flex; justify-content: space-between; gap: var(--space-3); }
+.facts dt { color: var(--muted-foreground); }
+.facts dd { margin: 0; color: var(--foreground); font-variant-numeric: tabular-nums; }
+.session { margin-top: var(--space-3); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 64px; padding: var(--space-2) var(--space-1); cursor: pointer; font-size: var(--text-small); }
+.toggle > span > span { display: block; margin-top: var(--space-1); color: var(--muted-foreground); font-weight: 400; }
+.toggle input[type="checkbox"] { appearance: none; flex: none; width: 36px; height: 22px; min-height: 0; margin: 0; padding: 2px; border: 1px solid var(--input-border); border-radius: 20px; background: var(--surface-raised); cursor: pointer; }
+.toggle input::after { content: ""; display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--muted-foreground); }
+.toggle input[type="checkbox"]:checked { background: var(--primary); border-color: var(--primary); }
+.toggle input:checked::after { background: var(--primary-foreground); transform: translateX(14px); }
+.toggle input:disabled { cursor: not-allowed; opacity: .5; }
+.join { width: 100%; margin-top: var(--space-4); border-radius: var(--radius); }
+.note { color: var(--muted-foreground); font-size: var(--text-small); margin: var(--space-3) var(--space-1) 0; }
+.utilities { display: grid; gap: var(--space-2); }
+.utilities button { justify-content: center; width: 100%; min-height: 44px; padding-inline: var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--control-radius); font-size: var(--text-small); font-weight: 500; white-space: normal; }
+.utilities button svg { flex: none; color: var(--muted-foreground); }
+.operations { display: grid; gap: var(--space-2); margin-top: var(--space-3); }
+.management { margin-top: var(--space-4); }
+.sessionState { display: flex; justify-content: space-between; gap: var(--space-3); margin: 0 0 var(--space-3); font-size: var(--text-small); }
+.sessionState strong { color: var(--foreground); font-weight: 500; }
+@media (prefers-reduced-motion: no-preference) { .toggle input::after { transition: transform 150ms var(--ease-out); } }

@@ -1,0 +1,14 @@
+.terms { margin-top: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius); background: var(--inset); overflow: hidden; }
+.trigger { width: 100%; min-height: 48px; justify-content: space-between; padding: 0 var(--space-4); background: transparent; border: 0; border-radius: var(--radius); color: var(--muted-foreground); font-size: var(--text-small); font-weight: 500; }
+.trigger:focus-visible { outline-offset: -3px; }
+.value { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--foreground); font-variant-numeric: tabular-nums; }
+.value svg { color: var(--muted-foreground); }
+.terms[data-open="true"] .value svg { transform: rotate(180deg); }
+.reveal { overflow: hidden; }
+.content { padding: 0 var(--space-4) var(--space-4); color: var(--muted-foreground); font-size: var(--text-small); }
+.content p { margin: 0; }
+.content dl { display: grid; gap: var(--space-2); margin: var(--space-3) 0; padding-block: var(--space-3); border-block: 1px solid var(--line); }
+.content dl > div { display: flex; justify-content: space-between; gap: var(--space-3); }
+.content dd { color: var(--foreground); margin: 0; font-variant-numeric: tabular-nums; }
+@media (hover: hover) { .trigger:not(:disabled):hover { background: var(--card); } }
+@media (prefers-reduced-motion: no-preference) { .value svg { transition: transform 250ms var(--ease-out); } }
