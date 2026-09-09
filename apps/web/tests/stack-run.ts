@@ -32,8 +32,9 @@ const walletSignatures: string[] = [];
 const approval = createApprovalGate();
 await browserWallet(page, stack.host, signature => { walletSignatures.push(signature); journal(stack.directory, "browser-signatures", { signature }); }, approval.beforeSign);
 const log = openSync(resolve(stack.directory, "web.log"), "a", 0o600);
-const web = spawn(process.execPath, [resolve("apps/web/node_modules/next/dist/bin/next"), "dev", "--webpack", "--hostname", "127.0.0.1", "--port", "3300"], {
-  cwd: resolve("apps/web"), stdio: ["ignore", log, log], env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1",
+const webDirectory = resolve(process.env.FLINCH_TEST_WEB_DIR ?? "apps/web");
+const web = spawn(process.execPath, [resolve(webDirectory, "node_modules/next/dist/bin/next"), "dev", "--webpack", "--hostname", "127.0.0.1", "--port", "3300"], {
+  cwd: webDirectory, stdio: ["ignore", log, log], env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1",
     NEXT_PUBLIC_FLINCH_NETWORK: "localnet", NEXT_PUBLIC_FLINCH_BASE_RPC: stack.base.rpcEndpoint,
     NEXT_PUBLIC_FLINCH_LOCAL_ER: stack.er.rpcEndpoint, NEXT_PUBLIC_FLINCH_GENESIS: await stack.base.getGenesisHash(),
     NEXT_PUBLIC_FLINCH_ENABLE_TRANSACTIONS: "true", NEXT_PUBLIC_FLINCH_POOL: stack.pool.pool.toBase58(),
@@ -79,6 +80,11 @@ try {
   keeperService = await startBrowserKeeper(stack, ledger);
   await poll("browser room live", async () => { keeperService!.check(); const state = await client.readRoom(ledger); return state.control.kind === "delegated" ? true : undefined; });
   await expect(page.getByRole("button", { name: "Get sell quote", exact: true })).toBeEnabled();
+  const startToast = page.locator('[data-sonner-toast]').filter({ hasText: "Round started" });
+  if (await startToast.isVisible()) {
+    await startToast.getByRole("button", { name: "Close toast", exact: true }).click();
+    await expect(startToast).not.toBeVisible();
+  }
   await page.setViewportSize({ width: 1280, height: 1280 });
   await expect(page.locator(".roster-seat")).toHaveCount(4);
   await expect(page.locator(".player-slot")).toHaveCount(0);
