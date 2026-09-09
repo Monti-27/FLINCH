@@ -1,0 +1,28 @@
+.shape {
+  --skeleton-base: color-mix(in srgb, var(--foreground) 7%, transparent);
+  --skeleton-highlight: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --skeleton-duration: 2.2s;
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--chip-radius);
+  background: var(--skeleton-base);
+}
+.shape[data-round] { border-radius: 999px; }
+.shape::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, var(--skeleton-highlight) 48%, transparent 100%);
+  transform: translateX(-100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .shape::after { animation: skeleton-shimmer var(--skeleton-duration) ease-in-out infinite; }
+}
+@keyframes skeleton-shimmer {
+  0% { transform: translateX(-100%); }
+  85%, 100% { transform: translateX(100%); }
+}

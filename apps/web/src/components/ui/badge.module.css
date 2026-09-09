@@ -1,0 +1,6 @@
+.badge { display: inline-flex; align-items: center; gap: var(--space-1); border: 1px solid transparent; border-radius: 999px; padding: 2px var(--space-2); font: 600 var(--text-small)/1.5 var(--font-sans); }
+.badge:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.primary { background: var(--primary); color: var(--primary-foreground); }
+.secondary { background: var(--muted); color: var(--foreground); }
+.destructive { background: var(--negative-surface); color: var(--negative); }
+.outline { border-color: var(--line-strong); color: var(--foreground); }
