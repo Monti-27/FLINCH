@@ -26,9 +26,11 @@ export async function resolveRoom(base: BaseRoom, resolver: PlacementResolver, c
     if (observedBase.control.kind !== "delegated") throw new ClientError("placement_pending", "Control placement changed while resolving");
   }
   const er = connect(placement.endpoint);
-  const identity = await rpcRequest(placement.endpoint, "getIdentity", [], signal);
+  const [identity, result] = await Promise.all([
+    rpcRequest(placement.endpoint, "getIdentity", [], signal),
+    er.getMultipleAccountsInfoAndContext([address, SYSVAR_CLOCK_PUBKEY], "confirmed"),
+  ]);
   check(isRecord(identity) && identity.identity === placement.validator.toBase58(), "ER identity differs from delegation");
-  const result = await er.getMultipleAccountsInfoAndContext([address, SYSVAR_CLOCK_PUBKEY], "confirmed");
   if (!result.value[0]) throw new ClientError("placement_pending", "Control has not propagated to the ER");
   if (result.value[0].owner.equals(DELEGATION_PROGRAM_ID)) throw new ClientError("placement_pending", "ER is observing delegated base state during a handoff");
   const control = decodeControl(createProgram(er, programId), base.ledger, result.value[0]);

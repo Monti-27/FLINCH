@@ -29,14 +29,17 @@ test("local clients require explicit placement and pending endpoints are revalid
   await assert.rejects(client.status("base", "http://127.0.0.1:1", "signature"), /differs/);
 });
 
-test("routing rejects newer placement and wrong actual ER identity before reading Control", async t => {
+test("routing overlaps independent reads but rejects wrong identity before interpreting Control", async t => {
   const room = snapshot();
   let wrongIdentity = true;
+  let signalAccountRead: () => void = () => undefined;
+  const accountRead = new Promise<void>(resolve => { signalAccountRead = resolve; });
   const server = createServer(async (request, response) => {
     let body = "";
     for await (const chunk of request) body += chunk;
     const rpc = JSON.parse(body);
     assert.equal(rpc.method, "getIdentity");
+    await accountRead;
     response.setHeader("Content-Type", "application/json");
     response.end(JSON.stringify({ jsonrpc: "2.0", id: rpc.id, result: { identity: wrongIdentity ? Keypair.generate().publicKey.toBase58() : room.ledger.validator.toBase58() } }));
   });
@@ -49,10 +52,13 @@ test("routing rejects newer placement and wrong actual ER identity before readin
   const resolver = { resolve: async () => placement };
   await assert.rejects(resolveRoom(room, resolver, () => assert.fail("snapshot too old")), /predates/);
   placement.delegationSlot = room.slot;
-  await assert.rejects(resolveRoom(room, resolver, url => new Connection(url)), /identity differs/);
-  wrongIdentity = false;
   const rpc = new Connection(placement.endpoint);
-  rpc.getMultipleAccountsInfoAndContext = async () => ({ context: { slot: 1 }, value: [{ data: Buffer.alloc(1), owner: DELEGATION_PROGRAM_ID, executable: false, lamports: 1 }, null] });
+  rpc.getMultipleAccountsInfoAndContext = async () => {
+    signalAccountRead();
+    return { context: { slot: 1 }, value: [{ data: Buffer.alloc(1), owner: DELEGATION_PROGRAM_ID, executable: false, lamports: 1 }, null] };
+  };
+  await assert.rejects(resolveRoom(room, resolver, () => rpc), /identity differs/);
+  wrongIdentity = false;
   await assert.rejects(resolveRoom(room, resolver, () => rpc), /handoff/);
 });
 

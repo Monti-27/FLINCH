@@ -60,8 +60,7 @@ export class FlinchClient {
 
   async quote(ledger: PublicKey, seat: number, slippageBps = 100, signal?: AbortSignal) {
     const room = await this.readRoom(ledger);
-    const pool = await readQuotePool(this.base, room.ledger.pool, room.slot);
-    const er = await this.resolve(room, signal);
+    const [pool, er] = await Promise.all([readQuotePool(this.base, room.ledger.pool, room.slot), this.resolve(room, signal)]);
     return quoteSell(pool, er.control, seat, er.now, slippageBps);
   }
 
