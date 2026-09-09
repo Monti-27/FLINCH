@@ -1,0 +1,65 @@
+.page {
+  --garden-paper: color-mix(in srgb, var(--color-alabaster-grey-50), white 64%);
+  --garden-ink: var(--color-shadow-grey-700);
+  --brand-mark-color: var(--color-shadow-grey-950);
+  --garden-muted: var(--color-alabaster-grey-600);
+  --garden-dot: color-mix(in srgb, var(--color-shadow-grey-500) 18%, transparent);
+  --ring: var(--color-twilight-indigo-600);
+  min-height: 100svh;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--garden-ink);
+  background-color: var(--garden-paper);
+  background-image: radial-gradient(circle, var(--garden-dot) .65px, transparent .85px);
+  background-size: 4px 4px;
+}
+.header { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 24px 40px; }
+.home { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+.home :global(.brand-logo) { font-size: 22px; gap: 7px; }
+.home :global(.brand-mark) { height: 25px; width: auto; }
+.home :global(.brand-status) { margin: 0; color: var(--garden-ink); }
+.header > a:last-child { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 12px; color: var(--garden-muted); text-decoration: none; }
+.code { position: absolute; top: 27%; inset-inline: 0; text-align: center; color: var(--garden-muted); font: 11px var(--font-mono); letter-spacing: .14em; pointer-events: none; }
+.garden { appearance: none; position: absolute; top: 22%; inset-inline: 0; width: min(100%, 1000px); height: 54%; padding: 0; margin: 0 auto; border: 0; border-radius: 0; background: transparent; color: var(--garden-ink); cursor: crosshair; touch-action: manipulation; }
+.page .garden:active { transform: none; }
+.garden:focus-visible { outline-offset: -8px; outline-style: dashed; }
+.house { display: block; position: absolute; width: 142px; left: 50%; top: 20%; transform: translateX(-50%); pointer-events: none; }
+.house svg { display: block; width: 100%; height: auto; }
+.smoke { opacity: .35; }
+.flower { position: absolute; width: 54px; height: 69px; transform: translate(-50%, -100%); pointer-events: none; }
+.flower svg { display: block; width: 100%; height: 100%; transform-origin: center bottom; }
+.spark { position: absolute; top: 12px; left: 24px; width: 4px; height: 4px; background: currentColor; opacity: 0; }
+.message { position: absolute; z-index: 2; left: 50%; bottom: max(48px, 10svh); transform: translateX(-50%); width: min(460px, calc(100% - 40px)); text-align: center; background: var(--garden-paper); box-shadow: 0 0 28px 24px var(--garden-paper); }
+.message h1 { font: 500 16px/1.4 var(--font-display); letter-spacing: -.025em; margin-bottom: 8px; }
+.message p { font-size: 12px; color: var(--garden-muted); line-height: 1.7; margin: 0; }
+.actions { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 8px; font-size: 11px; }
+.actions button, .actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 4px; border: 0; background: transparent; font: inherit; color: var(--garden-ink); text-decoration: none; cursor: pointer; }
+.actions button:disabled { color: var(--garden-muted); cursor: default; }
+.actions > span { color: var(--color-alabaster-grey-400); }
+@media (hover: hover) {
+  .page .garden:hover { background: transparent; color: var(--garden-ink); }
+  .page .actions button:hover { background: transparent; }
+  .page a:hover, .actions button:not(:disabled):hover { color: var(--color-twilight-indigo-600); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .flower svg { animation: bloom 480ms cubic-bezier(.22,1,.36,1) both; }
+  .spark { animation: spark 440ms ease-out both; }
+  @keyframes bloom { from { opacity: 0; clip-path: inset(100% 0 0); transform: translateY(6px); } to { opacity: 1; clip-path: inset(0); transform: none; } }
+  @keyframes spark { 0% { opacity: .7; box-shadow: 0 0 currentColor, 0 0 currentColor, 0 0 currentColor; } 100% { opacity: 0; box-shadow: -20px -14px currentColor, 22px -18px currentColor, 16px 16px currentColor; transform: translateY(-8px); } }
+}
+@media (max-width: 600px) {
+  .header { padding: 16px 24px; }
+  .header > a:last-child { font-size: 11px; }
+  .house { width: 112px; top: 26%; }
+  .flower { width: 42px; height: 54px; }
+  .message { bottom: 12svh; }
+  .message h1 { font-size: 16px; }
+  .message p { font-size: 11px; }
+}
+@media (max-height: 560px) {
+  .header { padding-block: 8px; }
+  .code { top: 22%; }
+  .house { width: 84px; top: 10%; }
+  .message { bottom: 24px; }
+}
