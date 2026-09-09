@@ -1,0 +1,40 @@
+.dialog { width: min(640px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overscroll-behavior: contain; margin: auto; padding: var(--space-6); border: 1px solid var(--line-strong); border-radius: 24px; background: var(--card); color: var(--foreground); box-shadow: 0 32px 80px var(--shadow); }
+.dialog[open] { animation: none; }
+.dialog::backdrop { background: var(--shadow); opacity: var(--help-backdrop, 0); }
+.dialog :global(.dialog-heading) { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+.dialog :global(.dialog-heading h2) { font-size: 30px; line-height: 1.2; margin: var(--space-2) 0; letter-spacing: -.04em; }
+.dialog :global(.dialog-heading p) { margin: 0; color: var(--muted-foreground); font-size: 13px; }
+.dialog :global(.dialog-heading .icon-button) { flex-shrink: 0; width: 40px; min-height: 40px; border: 1px solid var(--line-strong); border-radius: 50%; }
+.dialog :global(.rules-eyebrow) { color: var(--accent); font-size: var(--text-small); font-weight: 600; }
+.dialog :global(.rules-facts) { display: grid; grid-template-columns: repeat(3, 1fr); padding: var(--space-4) 0; margin-bottom: var(--space-6); border-block: 1px solid var(--line); }
+.dialog :global(.rules-facts > div) { display: flex; flex-direction: column; gap: var(--space-1); padding-left: var(--space-5); border-left: 1px solid var(--line); }
+.dialog :global(.rules-facts > div:first-child) { padding-left: 0; border-left: 0; }
+.dialog :global(.rules-facts strong) { font: 500 24px/1.2 var(--font-display); letter-spacing: -.03em; }
+.dialog :global(.rules-facts strong span) { font-size: 16px; margin-left: 2px; }
+.dialog :global(.rules-facts div > span) { font-size: var(--text-small); color: var(--muted-foreground); }
+.dialog :global(.rules-list) { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
+.dialog :global(.rules-list li) { min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.dialog :global(.rule-number) { color: var(--accent); font: 500 var(--text-small) var(--font-mono); }
+.dialog :global(.rules-list h3) { font: 600 15px/1.4 var(--font-sans); letter-spacing: -.02em; margin: 0 0 var(--space-2); }
+.dialog :global(.rules-list p) { color: var(--muted-foreground); margin: 0; font-size: 13px; line-height: 1.65; }
+.dialog :global(.rules-settlement) { padding: var(--space-4); border-radius: var(--control-radius); background: var(--background); }
+.dialog :global(.rules-settlement strong) { font-size: 13px; }
+.dialog :global(.rules-settlement p) { margin: var(--space-1) 0 0; font-size: var(--text-small); color: var(--muted-foreground); line-height: 1.6; }
+.dialog :global(.rules-details) { margin-top: var(--space-2); }
+.dialog :global(.rules-details summary) { display: flex; justify-content: space-between; align-items: center; min-height: 44px; cursor: pointer; color: var(--muted-foreground); font-size: var(--text-small); border-radius: var(--chip-radius); }
+.dialog :global(.rules-details[open] summary svg) { transform: rotate(180deg); }
+.dialog :global(.rules-details p) { color: var(--muted-foreground); font-size: var(--text-small); margin: var(--space-2) 0 var(--space-3); line-height: 1.65; }
+.dialog :global(.rules-footer) { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-top: var(--space-4); margin-top: var(--space-2); border-top: 1px solid var(--line); }
+.dialog :global(.rules-footer > span) { color: var(--muted-foreground); font-size: var(--text-small); }
+.dialog :global(.rules-footer .button) { min-width: 120px; min-height: 44px; }
+@media (max-width: 600px) {
+  .dialog { padding: var(--space-5); border-radius: var(--arena-radius); }
+  .dialog :global(.rules-list) { grid-template-columns: 1fr; gap: var(--space-4); }
+  .dialog :global(.rules-facts) { margin-bottom: var(--space-5); }
+  .dialog :global(.dialog-heading) { margin-bottom: var(--space-5); }
+  .dialog :global(.rules-list li) { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: var(--space-3); }
+  .dialog :global(.rule-number) { padding-top: 3px; }
+  .dialog :global(.rules-facts > div) { padding-left: var(--space-3); }
+  .dialog :global(.dialog-heading h2) { font-size: 28px; }
+  .dialog :global(.rules-footer) { position: sticky; bottom: calc(-1 * var(--space-5)); padding-bottom: var(--space-4); background: var(--card); }
+}

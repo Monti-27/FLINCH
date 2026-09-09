@@ -8,7 +8,6 @@ import { WalletControl } from "./wallet-control.tsx";
 import { BrandLogo } from "../brand/logo.tsx";
 
 export function Header({ config, home, inRoom }: { config: WebConfig; home: () => void; inRoom: boolean }) {
-  const help = useUi(state => state.setHelpOpen);
   const mobileOpen = useUi(state => state.mobileNavigation);
   const setMobileOpen = useUi(state => state.setMobileNavigation);
   return (
@@ -19,7 +18,6 @@ export function Header({ config, home, inRoom }: { config: WebConfig; home: () =
       <Navigation home={home} inRoom={inRoom} />
       <div className="header-actions">
         <span className="network">{config.network === "devnet" ? "Devnet" : "Localnet"}</span>
-        <button type="button" className="text-button help-button" aria-label="How to play" onClick={() => help(true)}>?</button>
         <WalletControl />
         <button type="button" className="icon-button navigation-toggle" aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-controls="site-navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen(!mobileOpen)}>

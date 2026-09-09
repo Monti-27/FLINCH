@@ -1,20 +1,34 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { ChevronDown } from "lucide-react";
+import { LayoutGroup, motion } from "framer-motion";
 import { useUi } from "../../providers/ui-provider.tsx";
-import { NavigationContent } from "./navigation-content.tsx";
+import { NavigationPanels, NAV_MOTION } from "./navigation-motion.tsx";
 
 export function Navigation({ home, inRoom }: { home: () => void; inRoom: boolean }) {
   const panel = useUi(s => s.navigationPanel);
   const mobileOpen = useUi(s => s.mobileNavigation);
   const compact = useUi(s => s.compactPlayers);
+  const reduced = useUi(s => s.reducedMotion);
   const setPanel = useUi(s => s.setNavigationPanel);
   const close = useUi(s => s.closeNavigation);
-  const help = useUi(s => s.setHelpOpen);
   const container = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const visible = !compact || mobileOpen;
+  const selected = panel ?? (!inRoom ? "arena" : null);
+  useLayoutEffect(() => {
+    if (panel !== "rules") return;
+    const button = container.current?.querySelector<HTMLButtonElement>('[aria-controls="navigation-rules"]');
+    if (!button) return;
+    trigger.current = button;
+    const frame = requestAnimationFrame(() => {
+      const bounds = button.getBoundingClientRect();
+      if (bounds.top < 0 || bounds.bottom > innerHeight) container.current?.closest("header")?.scrollIntoView({ behavior: "instant", block: "start" });
+      if (document.activeElement !== button) button.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [panel]);
   useEffect(() => {
     if (!panel && !mobileOpen) return;
     const pointer = (event: PointerEvent) => {
@@ -31,26 +45,27 @@ export function Navigation({ home, inRoom }: { home: () => void; inRoom: boolean
     document.addEventListener("keydown", keyboard);
     return () => { document.removeEventListener("pointerdown", pointer); document.removeEventListener("keydown", keyboard); };
   }, [panel, mobileOpen, compact, close]);
-  const dismiss = () => {
-    if (compact) document.querySelector<HTMLButtonElement>(".navigation-toggle")?.focus();
-    else trigger.current?.focus();
-    close();
-  };
   return <div ref={container} id="site-navigation" className="notched-navigation" data-mobile-open={mobileOpen}
     inert={!visible} aria-hidden={!visible}
     onBlur={event => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) close(); }}>
-    <nav aria-label="Main navigation" className="navigation-bar">
-      <button type="button" className="navigation-link" aria-current={!inRoom ? "page" : undefined} onClick={() => { close(); home(); }}>Arena</button>
-      {(["game", "protocol"] as const).map(id => <button type="button" key={id} className="navigation-link"
+    <motion.div className="navigation-surface" initial={false}
+      animate={{ opacity: visible ? 1 : 0, y: visible || reduced ? 0 : -8, visibility: "visible", transitionEnd: { visibility: visible ? "visible" : "hidden" } }}
+      transition={reduced ? { duration: 0 } : NAV_MOTION.spring}>
+    <LayoutGroup><nav aria-label="Main navigation" className="navigation-bar">
+      <button type="button" className="navigation-link" aria-current={!inRoom ? "page" : undefined} onClick={() => { close(); home(); }}>
+        {selected === "arena" && <motion.span className="navigation-selection" layoutId="navigation-selection" transition={reduced ? { duration: 0 } : NAV_MOTION.spring} />}
+        <span>Arena</span>
+      </button>
+      {(["game", "protocol", "rules"] as const).map(id => <button type="button" key={id} className="navigation-link"
+        aria-label={id === "game" ? "The game" : id === "rules" ? "How to play" : "Protocol"}
         aria-expanded={panel === id} aria-controls={`navigation-${id}`} onClick={event => { trigger.current = event.currentTarget; setPanel(panel === id ? null : id); }}>
-        {id === "game" ? "The game" : "Protocol"}<ChevronDown size={14} aria-hidden />
+        {selected === id && <motion.span className="navigation-selection" layoutId="navigation-selection" transition={reduced ? { duration: 0 } : NAV_MOTION.spring} />}
+        <span className="navigation-label-full">{id === "game" ? "The game" : id === "rules" ? "How to play" : "Protocol"}</span>
+        <span className="navigation-label-short" aria-hidden>{id === "game" ? "Game" : id === "rules" ? "Rules" : "Protocol"}</span>
+        <motion.span className="navigation-chevron" animate={{ rotate: panel === id ? 180 : 0 }} transition={reduced ? { duration: 0 } : NAV_MOTION.spring}><ChevronDown size={14} aria-hidden /></motion.span>
       </button>)}
-      <button type="button" className="navigation-link navigation-help" aria-label="How to play" onClick={() => { setPanel(null); help(true); }}>How to play</button>
-      <button type="button" className="icon-button navigation-close" aria-label="Close navigation" onClick={dismiss}><X size={18} aria-hidden /></button>
-    </nav>
-    {(["game", "protocol"] as const).map(id => <div key={id} id={`navigation-${id}`} className="navigation-panel"
-      data-open={panel === id} inert={panel !== id} aria-hidden={panel !== id}>
-      <NavigationContent panel={id} />
-    </div>)}
+    </nav></LayoutGroup>
+    <NavigationPanels panel={visible ? panel : null} reduced={reduced} />
+    </motion.div>
   </div>;
 }

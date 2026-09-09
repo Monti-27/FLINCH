@@ -3,6 +3,8 @@ import { nextPlayerRailMode } from "./player-rail-state.ts";
 import type { PlayerRailEvent, PlayerRailMode } from "./player-rail-state.ts";
 import type { ChartInterval, ChartStyle } from "../features/market/chart-options.ts";
 
+export type NavigationPanel = "game" | "protocol" | "rules";
+
 export type UiState = {
   room: string;
   online: boolean;
@@ -17,9 +19,10 @@ export type UiState = {
   ambientMotionPaused: boolean;
   setAmbientMotionPaused: (paused: boolean) => void;
   compactPlayers: boolean;
-  navigationPanel: "game" | "protocol" | null;
+  navigationPanel: NavigationPanel | null;
   mobileNavigation: boolean;
-  setNavigationPanel: (panel: "game" | "protocol" | null) => void;
+  setNavigationPanel: (panel: NavigationPanel | null) => void;
+  openNavigationRules: () => void;
   setMobileNavigation: (open: boolean) => void;
   closeNavigation: () => void;
   setCompactPlayers: (compact: boolean) => void;
@@ -48,6 +51,7 @@ export function createUiStore() {
     navigationPanel: null,
     mobileNavigation: false,
     setNavigationPanel: navigationPanel => set({ navigationPanel }),
+    openNavigationRules: () => set(state => ({ navigationPanel: "rules", mobileNavigation: state.compactPlayers })),
     setMobileNavigation: mobileNavigation => set({ mobileNavigation, navigationPanel: null }),
     closeNavigation: () => set({ navigationPanel: null, mobileNavigation: false }),
     setCompactPlayers: compactPlayers => set({ compactPlayers, playerRail: "closed", navigationPanel: null, mobileNavigation: false }),
