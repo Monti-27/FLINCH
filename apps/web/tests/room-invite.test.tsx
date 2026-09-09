@@ -63,7 +63,7 @@ it("reset invalidates a pending copy rather than restoring old-room feedback", a
 
 it("renders a native named invite control with no fabricated link or invalid-address action", () => {
   const html = renderToStaticMarkup(<RoomInvite address={address} />);
-  expect(html).toContain('aria-label="Copy invite link"');
+  expect(html).toContain('aria-label="Invite players: copy invite link"');
   expect(html).toContain('type="button"');
   expect(html).toContain('role="status"');
   expect(html).not.toContain("?room=");

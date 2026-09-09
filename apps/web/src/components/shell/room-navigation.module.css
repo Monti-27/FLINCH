@@ -1,0 +1,19 @@
+.root { position: relative; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--arena-gutter); border-bottom: 1px solid var(--line); }
+.actions { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
+.root button.control { min-height: 44px; flex-shrink: 0; padding-inline: var(--space-4); border-color: var(--input-border); background: var(--card); color: var(--foreground); font-size: var(--text-small); }
+.root button.control:disabled { border-color: var(--control-edge); color: var(--muted-foreground); cursor: not-allowed; }
+.root button.control:not(:disabled):active { transform: none; background: var(--surface-raised); }
+.check { min-width: 172px; }
+.label { display: grid; text-align: left; }
+.label > span { grid-area: 1 / 1; }
+.label > span[data-visible="false"] { visibility: hidden; }
+@media (hover: hover) {
+  .root button.control:not(:disabled):hover { background: var(--surface-raised); border-color: var(--input-border); }
+}
+@media (max-width: 1100px) { .root { padding-inline: var(--space-6); } }
+@media (max-width: 600px) {
+  .root { padding-inline: var(--space-4); }
+  .root button.control { padding-inline: var(--space-3); }
+  .root button.check { min-width: 96px; padding-inline: var(--space-2); }
+  .detail { display: none; }
+}

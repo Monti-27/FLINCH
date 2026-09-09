@@ -26,12 +26,12 @@ function InviteControl({ address }: { address: string }) {
   useEffect(() => () => store.getState().reset(), [store]);
   const close = () => { reset(); trigger.current?.focus(); };
   return <div className={styles.root} onKeyDown={event => { if (event.key === "Escape" && status === "manual") { event.stopPropagation(); close(); } }}>
-    <Button ref={trigger} variant="ghost" size="sm" className={styles.trigger} aria-label="Copy invite link"
+    <Button ref={trigger} size="sm" className={styles.trigger} aria-label="Invite players: copy invite link"
       aria-busy={status === "copying"} disabled={status === "copying"} data-copied={status === "copied"}
       aria-expanded={status === "manual"} aria-controls={status === "manual" ? id : undefined}
       onClick={() => void copy(window.location.href, value => navigator.clipboard.writeText(value))}>
       <span className={styles.icon} aria-hidden><Link2 size={16} /><Check size={16} /></span>
-      <span className={styles.label} aria-hidden><span>Invite players</span><span>Link copied</span></span>
+      <span className={styles.label} aria-hidden><span>Invite<span className={styles.detail}> players</span></span><span><span className={styles.detail}>Link </span>copied</span></span>
     </Button>
     <span className={styles.announcement} role="status">{status === "copied" ? "Invite link copied" : status === "manual" ? "Clipboard unavailable. Copy the selected link." : ""}</span>
     {status === "manual" && <div id={id} className={styles.manual}>

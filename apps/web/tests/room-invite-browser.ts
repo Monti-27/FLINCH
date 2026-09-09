@@ -12,7 +12,7 @@ export async function checkRoomInvite(page: Page, address: string, directory: st
     url.searchParams.set("unshared", "test-value"); url.hash = "not-shared";
     history.replaceState(null, "", url);
   });
-  const invite = page.getByRole("button", { name: "Copy invite link", exact: true });
+  const invite = page.getByRole("button", { name: "Invite players: copy invite link", exact: true });
   for (const width of [320, 375, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     const before = await invite.boundingBox();

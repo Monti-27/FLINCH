@@ -1,0 +1,4 @@
+:root { --font-manrope: "Manrope Variable"; --font-space-grotesk: "Space Grotesk Variable"; }
+.fixture-controls { padding: var(--space-6); }
+.fixture-controls > div { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fixture-controls output { display: block; margin-top: var(--space-4); }

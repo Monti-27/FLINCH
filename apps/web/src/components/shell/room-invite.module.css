@@ -1,5 +1,6 @@
 .root { position: relative; margin-left: auto; }
-.trigger { min-width: 136px; }
+.root .trigger { min-width: 144px; min-height: 44px; padding-inline: var(--space-4); }
+.root .trigger:not(:disabled):active { transform: none; }
 .icon, .label { display: grid; }
 .icon > *, .label > * { grid-area: 1 / 1; }
 .label { text-align: left; }
@@ -15,6 +16,9 @@
   .icon > *, .label > * { transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out); }
 }
 @media (max-width: 600px) {
-  .trigger { min-width: 128px; }
-  .manual { right: calc(-44px - var(--space-2)); }
+  .root { position: static; }
+  .root .trigger { min-width: 92px; padding-inline: var(--space-3); }
+  .detail { display: none; }
+  .label > :last-child { text-transform: capitalize; }
+  .manual { right: var(--space-4); }
 }

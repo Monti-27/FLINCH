@@ -19,7 +19,7 @@ export function RoomSidebar({ room, control, seat, onOpenSeat }: Props) {
   const compact = useUi(state => state.compactPlayers);
   const dispatch = useUi(state => state.dispatchPlayerRail);
   const reduced = useUi(state => state.reducedMotion);
-  const help = useUi(state => state.setHelpOpen);
+  const help = useUi(state => state.openNavigationRules);
   const root = useRef<HTMLElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const close = useRef<HTMLButtonElement>(null);
@@ -67,7 +67,7 @@ export function RoomSidebar({ room, control, seat, onOpenSeat }: Props) {
       </header>
       <Roster room={room} control={control} seat={seat} onOpenSeat={onOpenSeat ? () => { dismiss(); onOpenSeat(); } : undefined} />
       <div className="rail-footer">
-        <button type="button" className="text-button" onClick={() => { dismiss(true); help(true); }}>How the round works<ArrowUpRight size={14} aria-hidden /></button>
+        <button type="button" className="text-button" onClick={() => { dismiss(); help(); }}>How the round works<ArrowUpRight size={14} aria-hidden /></button>
       </div>
     </div>
   </aside>;
