@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { chromium, expect } from "@playwright/test";
+import { checkTimerSync } from "./timer-sync-browser.ts";
 
 const require = createRequire(import.meta.url);
 const vitePath = require.resolve("vite", { paths: [dirname(require.resolve("vitest"))] });
@@ -135,9 +136,16 @@ try {
   await page.clock.fastForward(5000);
   await expect(dial.locator("[data-seconds]")).toHaveAttribute("data-seconds", "0");
   await expect(dial).not.toHaveAttribute("data-state", "ended");
+  const syncPage = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  syncPage.on("pageerror", error => errors.push(error.message));
+  const cpu = await syncPage.context().newCDPSession(syncPage);
+  await cpu.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+  const synchronization = await checkTimerSync(syncPage, `http://127.0.0.1:${address.port}/timer.html`);
+  await syncPage.screenshot({ path: resolve(directory, "synchronized.png") });
+  await syncPage.close();
   assert.deepEqual(errors, []);
   writeFileSync(resolve(directory, "result.json"), JSON.stringify({ passed: true, geometry, motion, colors, reducedMotion: true, fullCountdown: true, states: true,
-    scope: "Isolated real component with controlled time, no transactions", errors }, null, 2));
+    synchronization, cpuThrottle: 4, scope: "Isolated real component with controlled and irregular observations, no transactions", errors }, null, 2));
   console.log(`Timer checks passed: ${directory}`);
 } catch (error) {
   await page.screenshot({ path: resolve(directory, "failure.png"), fullPage: true });
