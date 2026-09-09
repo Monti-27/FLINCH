@@ -8,6 +8,8 @@ import { RoomWorker } from "../room-worker.ts";
 import { runRooms } from "../scheduler.ts";
 import { decide } from "../decision.ts";
 import { RoomCatalog } from "./discovery.ts";
+import type { OperationStore } from "../store.ts";
+import type { PublicKey } from "@solana/web3.js";
 
 export type RuntimeEvent = Readonly<{ event: string; [key: string]: unknown }>;
 export type Report = (event: RuntimeEvent) => void;
@@ -35,13 +37,15 @@ export async function inspectKeeper(config: KeeperConfig, report: Report, signal
   }
 }
 
-export async function runKeeper(config: KeeperConfig, execute: boolean, report: Report, signal: AbortSignal) {
+export type DurableStore = OperationStore & { pendingRooms(): Promise<PublicKey[]> };
+
+export async function runKeeper(config: KeeperConfig, execute: boolean, report: Report, signal: AbortSignal, storage?: DurableStore) {
   if (!execute || !config.keypairFile || !config.payer) throw new KeeperError("execution_required");
   signal.throwIfAborted();
-  const release = await acquireJournal(config.journalDirectory);
+  const release = storage ? async () => {} : await acquireJournal(config.journalDirectory);
   try {
     const client = await clientFor(config);
-    const store = new FileOperationStore(config.journalDirectory);
+    const store = storage ?? new FileOperationStore(config.journalDirectory);
     const initialRooms = [...new Map([...config.rooms, ...config.discovery ? await store.pendingRooms() : []]
       .map(room => [room.toBase58(), room])).values()];
     if (initialRooms.length > 128) throw new KeeperError("invalid_config");

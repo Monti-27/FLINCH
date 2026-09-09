@@ -28,7 +28,9 @@ try {
   const keypairFile = join(secrets, "payer.json");
   await writeFile(keypairFile, JSON.stringify([...payer.secretKey]), { mode: 0o600 });
   const config = { version: 1, network: "localnet", expectedGenesis: await stack.base.getGenesisHash(), baseUrl: stack.base.rpcEndpoint,
-    localErUrl: stack.er.rpcEndpoint, rooms: [room.ledger.toBase58()], journalDirectory, keypairFile, payer: payer.publicKey.toBase58(), concurrency: 1 };
+    localErUrl: stack.er.rpcEndpoint, rooms: process.env.FLINCH_TEST_DISCOVERY === "true" ? [] : [room.ledger.toBase58()],
+    discovery: process.env.FLINCH_TEST_DISCOVERY === "true" ? { pool: stack.pool.pool.toBase58(), validator: room.validator.toBase58() } : undefined,
+    journalDirectory, keypairFile, payer: payer.publicKey.toBase58(), concurrency: 1 };
   const configFile = join(secrets, "keeper.json");
   const inspectFile = join(secrets, "inspect.json");
   await writeFile(configFile, JSON.stringify(config), { mode: 0o600 });
@@ -118,6 +120,7 @@ try {
   const outcome = { complete: true, environment: "local standalone keeper process", syntheticLiquidity: true, controlInjected: false,
     swaps: 2, claims: 4, readOnlyInspection: true, duplicateProcessRejected: true, restartedPending,
     independentFeePayer: true, processIds: children.filter(child => child.events.some(event => event.event === "ready")).map(child => child.child.pid),
+    automaticDiscovery: process.env.FLINCH_TEST_DISCOVERY === "true",
     ledger: room.ledger.toBase58() };
   result(stack.directory, outcome);
   console.log(JSON.stringify(outcome));

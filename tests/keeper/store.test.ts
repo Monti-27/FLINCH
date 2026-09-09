@@ -17,7 +17,9 @@ test("atomic owner-only journal survives restart and retains superseded evidence
   await store.put(op);
   const restart = new FileOperationStore(directory);
   assert.deepEqual(await restart.get(op.room), op);
+  assert.deepEqual((await restart.pendingRooms()).map(key => key.toBase58()), [op.room]);
   await restart.put({ ...op, status: "superseded" });
+  assert.deepEqual(await restart.pendingRooms(), []);
   assert.equal((await store.history(op.room)).length, 2);
   assert.equal((await stat(join(directory, `${op.room}.json`))).mode & 0o777, 0o600);
   assert.deepEqual(await readdir(directory), [`${op.room}.json`]);

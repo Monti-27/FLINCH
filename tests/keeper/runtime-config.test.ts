@@ -43,6 +43,15 @@ test("execution requires an explicit flag and signer before filesystem or networ
   await assert.rejects(runKeeper(value, true, report, new AbortController().signal), { message: "execution_required" });
 });
 
+test("automatic discovery requires an exact public pool and validator scope", () => {
+  const value = { ...config(), rooms: [], discovery: { pool: key().toBase58(), validator: key().toBase58() } };
+  assert.equal(parseConfig(value).rooms.length, 0);
+  assert.equal(parseConfig(value).discovery?.pool.toBase58(), value.discovery.pool);
+  for (const discovery of [{}, { ...value.discovery, validator: "" }, { ...value.discovery, program: key().toBase58() }]) {
+    assert.throws(() => parseConfig({ ...value, discovery }));
+  }
+});
+
 test("operational reporting emits only known error codes, never raw RPC or file errors", () => {
   assert.equal(errorCode(new KeeperError("unsafe_file")), "unsafe_file");
   assert.equal(errorCode(new ClientError("placement_pending", "private diagnostic")), "placement_pending");
