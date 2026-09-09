@@ -1,0 +1,43 @@
+.section {
+  --bento-surface: color-mix(in srgb, var(--paper) 74%, var(--color-twilight-indigo-50));
+  --bento-sheet: var(--paper-raised);
+  --bento-blue: var(--color-twilight-indigo-400);
+  --bento-blue-soft: var(--color-twilight-indigo-100);
+  --bento-line: color-mix(in srgb, var(--ink) 7%, transparent);
+  --bento-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 6%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 4%, transparent);
+  position: relative;
+  padding: var(--landing-section) var(--landing-gutter);
+  border-top: 1px solid var(--paper-line);
+  scroll-margin-top: 80px;
+}
+.legacyAnchor { position: absolute; top: 0; left: 0; scroll-margin-top: 80px; }
+.introduction { text-align: center; margin-bottom: 40px; }
+.eyebrow { color: var(--paper-accent); font-size: 11px; font-weight: 600; letter-spacing: .1em; margin-bottom: 16px; }
+.introduction h2 { font-size: var(--landing-heading); font-weight: 500; line-height: 1.13; letter-spacing: -.05em; margin-bottom: 16px; }
+.introduction h2 span { color: var(--ink-soft); }
+.introduction > p:last-child { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.card { position: relative; isolation: isolate; grid-column: span 2; min-width: 0; display: flex; flex-direction: column; overflow: hidden; border-radius: 18px; background: var(--bento-surface); }
+.card:nth-child(n+4) { grid-column: span 3; }
+.art { height: 280px; flex-shrink: 0; position: relative; overflow: hidden; pointer-events: none; user-select: none; }
+.card:nth-child(n+4) .art { height: 260px; }
+.art::after { content: ""; position: absolute; z-index: 5; inset: auto 0 0; height: 24px; background: linear-gradient(transparent, var(--bento-surface)); pointer-events: none; }
+.card:nth-child(-n+2) .art::after { content: none; }
+.copy { position: relative; z-index: 2; padding: 16px 24px 28px; }
+.copy h3 { color: var(--ink); font-family: var(--font-sans); font-size: 14px; font-weight: 600; line-height: 1.5; letter-spacing: -.025em; margin: 0 0 5px; }
+.copy p { color: var(--ink-soft); font-size: 12px; line-height: 1.7; margin: 0; text-wrap: pretty; }
+@media (max-width: 900px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card:nth-child(n) { grid-column: span 1; }
+  .card:last-child { grid-column: span 2; }
+  .card:nth-child(4) .art { height: 280px; }
+  .copy { padding-inline: 20px; }
+}
+@media (max-width: 620px) {
+  .grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .card:nth-child(n) { grid-column: span 1; }
+  .art { height: 280px; }
+  .copy { padding: 12px 24px 28px; }
+  .copy h3 { font-size: 15px; }
+  .copy p { font-size: 13px; }
+}

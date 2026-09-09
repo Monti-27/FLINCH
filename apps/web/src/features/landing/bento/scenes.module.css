@@ -1,0 +1,51 @@
+.decision { position: absolute; inset: 28px 22px 0; overflow: hidden; padding: 16px; border-radius: 14px 14px 0 0; background: linear-gradient(180deg, var(--color-twilight-indigo-300), var(--color-twilight-indigo-50) 65%, transparent); }
+.decisionHeading { display: flex; justify-content: space-between; gap: 8px; color: var(--color-twilight-indigo-800); font-size: 10px; }
+.decisionHeading > span:last-child { padding: 2px 6px; margin-top: -2px; border-radius: 4px; background: color-mix(in srgb, var(--bento-sheet) 55%, transparent); }
+.decisionClock { color: var(--color-twilight-indigo-900); font: 500 42px/1 var(--font-display); letter-spacing: -.07em; text-align: center; margin-top: 18px; }
+.keys { display: flex; position: relative; justify-content: center; margin-top: 25px; padding-inline: 4px; }
+.keys > div { width: 94px; flex-shrink: 0; padding: 18px 6px; border-radius: 12px; box-shadow: var(--bento-shadow); text-align: center; }
+.keys span { display: block; font: 500 17px var(--font-display); letter-spacing: -.02em; }
+.keys small { display: block; margin-top: 5px; font-size: 9px; }
+.holdKey { z-index: 1; background: var(--bento-sheet); color: var(--ink); }
+.sellKey { margin-left: -5px; background: var(--color-twilight-indigo-600); color: var(--color-twilight-indigo-50); }
+.sessionTag { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; font-size: 9px; color: var(--ink-soft); white-space: nowrap; }
+.keyGlyph { width: 6px; height: 6px; border: 1px solid currentColor; border-radius: 50%; position: relative; margin-right: 4px; }
+.keyGlyph::after { content: ""; position: absolute; height: 1px; width: 5px; background: currentColor; left: 4px; top: 2px; }
+.holders { position: absolute; inset: 24px 28px 0; }
+.holderHeading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.holderHeading small { display: block; color: var(--ink-soft); font-size: 10px; }
+.holderHeading strong { display: block; margin-top: 4px; font: 500 36px/1.15 var(--font-display); letter-spacing: -.055em; }
+.holderHeading strong span { font-size: 27px; }
+.holderHeading > span { max-width: 100px; padding-top: 2px; text-align: right; font-size: 9px; color: var(--ink-soft); }
+.shareLabels { display: flex; gap: 20px; font-size: 10px; color: var(--ink-soft); margin: 18px 0 0; border-bottom: 1px solid var(--bento-line); }
+.shareLabels > span { padding-bottom: 7px; border-bottom: 1px solid transparent; }
+.shareLabels > span[data-selected="true"] { color: var(--paper-accent); border-color: var(--bento-blue); }
+.sharePlot { display: flex; justify-content: space-between; gap: 18px; height: 111px; padding-top: 14px; background: repeating-linear-gradient(0deg, transparent 0 31px, var(--bento-line) 31px 32px); }
+.shareColumn { display: flex; align-items: center; flex: 1; flex-direction: column; gap: 5px; min-width: 0; }
+.shareTrack { position: relative; height: 78px; width: 100%; max-width: 56px; border-radius: 10px 10px 4px 4px; background: var(--bento-sheet); overflow: hidden; }
+.shareFill { position: absolute; inset: 0; transform-origin: bottom; border-radius: 10px 10px 4px 4px; background: repeating-linear-gradient(135deg, transparent 0 3px, color-mix(in srgb, var(--bento-sheet) 32%, transparent) 3px 4px), linear-gradient(var(--bento-blue), var(--bento-blue-soft)); }
+.shareFill[data-seller="true"] { background: var(--color-alabaster-grey-300); }
+.shareBonus { position: absolute; inset: 8px 0 auto; text-align: center; color: var(--color-twilight-indigo-900); font-size: 16px; }
+.shareColumn > span { font-size: 9px; color: var(--ink-soft); white-space: nowrap; }
+.settlement { position: absolute; inset: 28px 24px 0; perspective: 900px; }
+.ledgerSheet { padding: 4px 0; }
+.ledgerHeading { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; color: var(--ink-soft); font-size: 10px; background: var(--paper-inset); border-radius: 7px 7px 0 0; }
+.ledgerRow { display: flex; align-items: center; gap: 9px; height: 46px; padding: 8px 14px; border-bottom: 1px solid var(--bento-line); background: color-mix(in srgb, var(--bento-sheet) 70%, transparent); }
+.ledgerRow strong { font-size: 11px; font-weight: 500; }
+.ledgerRow > span { margin-left: auto; font-size: 10px; color: var(--ink-soft); }
+.withdrawalSheet { position: absolute; z-index: 3; inset: 18px 14% auto; padding: 16px; border-radius: 13px; background: var(--bento-sheet); box-shadow: var(--bento-shadow); text-align: center; }
+.withdrawalSheet > span { display: block; font-size: 9px; color: var(--ink-soft); }
+.tokenJourney { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 14px 0; color: var(--ink-soft); }
+.tokenJourney > span { display: grid; place-items: center; height: 38px; width: 38px; border-radius: 50%; background: var(--paper); }
+.withdrawalSheet > strong { display: block; font-size: 14px; font-weight: 500; letter-spacing: -.03em; }
+.withdrawalKey { display: flex; justify-content: center; align-items: center; gap: 18px; padding: 9px 8px; margin-top: 13px; border-radius: 7px; background: var(--ink); color: var(--bento-sheet); font-size: 10px; }
+@media (max-width: 1100px) and (min-width: 901px) {
+  .decision { inset-inline: 16px; }
+}
+@media (max-width: 620px) {
+  .decision { inset-inline: 24px; }
+  .holders { inset-inline: 24px; }
+  .sharePlot { gap: 12px; }
+  .settlement { inset-inline: 20px; }
+  .withdrawalSheet { inset-inline: 10%; }
+}

@@ -1,0 +1,9 @@
+.questions { padding: clamp(56px, 6vw, 80px) var(--landing-gutter); border-top: 1px solid var(--paper-line); scroll-margin-top: 80px; }
+.introduction { text-align: center; margin: 0 auto var(--space-8); }
+.kicker { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; padding: 3px 7px; border: 1px solid var(--paper-line); border-radius: 5px; font-size: 11px; line-height: 1.4; color: var(--ink-soft); }
+.kicker svg { color: var(--paper-accent); }
+.introduction h2 { font-size: var(--landing-heading); font-weight: 500; line-height: 1.15; letter-spacing: -.05em; margin-bottom: 14px; }
+.introduction > p:last-child { font-size: 13px; color: var(--ink-soft); line-height: 1.7; margin: 0; }
+@media (max-width: 660px) {
+  .introduction { margin-bottom: 28px; }
+}
