@@ -38,7 +38,7 @@ export function handFlowPalette(element: Element) {
   });
 }
 
-export function createHandFlowRenderer(gl: WebGLRenderingContext, palette: number[][], direction: number) {
+export function createHandFlowRenderer(gl: WebGLRenderingContext, palette: number[][] | (() => number[][]), direction: number) {
   const shaders: WebGLShader[] = [];
   let program: WebGLProgram | null = null;
   let buffer: WebGLBuffer | null = null;
@@ -80,7 +80,15 @@ export function createHandFlowRenderer(gl: WebGLRenderingContext, palette: numbe
       if (location === null) throw new Error("Hand uniform is unavailable");
       return location;
     };
-    ["ink", "coral", "violet", "ice"].forEach((name, index) => gl.uniform3fv(uniform(`u_${name}`), palette[index]));
+    const colors = ["ink", "coral", "violet", "ice"].map(name => uniform(`u_${name}`));
+    let previousPalette: number[][] | null = null;
+    const updatePalette = () => {
+      const current = typeof palette === "function" ? palette() : palette;
+      if (current === previousPalette) return;
+      colors.forEach((color, index) => gl.uniform3fv(color, current[index]));
+      previousPalette = current;
+    };
+    updatePalette();
     gl.uniform1f(uniform("u_direction"), direction);
     const scene = uniform("u_scene");
     const limits = gl.getParameter(gl.MAX_VIEWPORT_DIMS) as Int32Array;
@@ -88,6 +96,7 @@ export function createHandFlowRenderer(gl: WebGLRenderingContext, palette: numbe
       maximum: Math.min(limits[0], limits[1], gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number),
       render(width: number, height: number, time: number) {
         if (disposed || gl.isContextLost()) return false;
+        updatePalette();
         gl.viewport(0, 0, width, height);
         gl.uniform3f(scene, width, height, time);
         gl.drawArrays(gl.TRIANGLES, 0, 3);

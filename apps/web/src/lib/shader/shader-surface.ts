@@ -106,6 +106,7 @@ export function createShaderSurface(canvas: HTMLCanvasElement, options: {
   canvas.addEventListener("webglcontextrestored", restored);
 
   return {
+    invalidate() { dirty = true; request(); },
     setPaused(value: boolean) {
       if (paused === value) return;
       paused = value;

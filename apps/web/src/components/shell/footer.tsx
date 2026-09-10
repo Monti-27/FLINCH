@@ -10,13 +10,14 @@ import { EcosystemIcon } from "../brand/ecosystem-icon.tsx";
 
 export function Footer({ config, arenaHref, theme = "dark" }: { config: Pick<WebConfig, "network" | "transactions">; arenaHref?: "/play"; theme?: "light" | "dark" }) {
   const help = useUi(s => s.setHelpOpen);
+  const navigationRules = useUi(s => s.openNavigationRules);
   const paused = useUi(s => s.ambientMotionPaused);
   const backToArena = () => {
     const arena = document.getElementById("arena");
     arena?.scrollIntoView({ behavior: "instant", block: "start" });
     arena?.focus({ preventScroll: true });
   };
-  return <footer id="footer" className="app-footer" data-theme={theme} aria-label="About FLINCH">
+  return <footer id="footer" className="app-footer" data-theme={theme} data-layout={arenaHref ? "landing" : "arena"} aria-label="About FLINCH">
     <div className="footer-content">
       <div className="footer-toolbar">
         <nav className="footer-links" aria-label="Protocol documentation">
@@ -32,11 +33,12 @@ export function Footer({ config, arenaHref, theme = "dark" }: { config: Pick<Web
       </div>
       <div className="footer-meta">
         <details className="footer-notice">
-          <summary>{config.network === "devnet" ? "Solana devnet" : "Local test network"} / Test build details</summary>
-          <div><p>{config.transactions ? "Experimental build. Test tokens only." : "Preview only. Gameplay is not deployed yet."}</p>
+          <summary>{config.network === "devnet" ? "Solana Devnet" : "Localnet"} / Network details</summary>
+          <div><p>{config.transactions ? "Experimental build. Test tokens only." : "Read-only preview. Transactions are disabled."}</p>
+            <p>{config.network === "devnet" ? "Devnet SOL and USDC have no monetary value. Never send mainnet assets." : "This is a separate local sandbox, not public Devnet. Local tokens have no monetary value."}</p>
             <p>No real-money wagering. Network fees and account rent apply. Reference prices are not sell quotes.</p></div>
         </details>
-        <button className="footer-rules" type="button" onClick={() => help(true)}>Read the rules<ArrowUpRight size={14} aria-hidden /></button>
+        <button className="footer-rules" type="button" onClick={() => arenaHref ? help(true) : navigationRules()}>Read the rules<ArrowUpRight size={14} aria-hidden /></button>
         {arenaHref ? <a className="footer-return" href={arenaHref} style={{ textDecoration: "none" }}>Enter the arena<ArrowUpRight size={14} aria-hidden /></a>
           : <button className="footer-return" type="button" onClick={backToArena} aria-label="Back to arena">Back to arena<ArrowUp size={14} aria-hidden /></button>}
       </div>

@@ -55,10 +55,12 @@ it("only links protocol resources to their actual documentation", () => {
   expect(markup).toContain("Only a confirmed Solana swap completes a sale");
 });
 
-it("keeps the footer explicit about undeployed gameplay and test tokens", () => {
+it("distinguishes a read-only Devnet preview from an undeployed program", () => {
   const markup = renderToStaticMarkup(<UiProvider><Footer config={{ network: "devnet", transactions: false }} /></UiProvider>);
-  expect(markup).toContain("Gameplay is not deployed yet");
-  expect(markup).toContain("Solana devnet");
+  expect(markup).toContain("Read-only preview. Transactions are disabled.");
+  expect(markup).toContain("Solana Devnet");
+  expect(markup).toContain("Devnet SOL and USDC have no monetary value");
+  expect(markup).not.toContain("not deployed");
   expect(markup).toContain("No real-money wagering");
   expect(markup).toContain("Reference prices are not sell quotes");
   expect(markup).toContain("Back to arena");
@@ -68,6 +70,7 @@ it("keeps the footer explicit about undeployed gameplay and test tokens", () => 
   expect(markup).toContain('class="footer-hand footer-hand-left"');
   expect(markup).toContain('class="footer-hand footer-hand-right"');
   expect(markup).toContain('data-theme="dark"');
+  expect(markup).toContain('data-layout="arena"');
   expect(markup.match(/<canvas/g)).toHaveLength(2);
   expect(markup).not.toMatch(/Pause motion|Resume motion|Hold your nerve/);
   expect(markup).toContain('<details class="footer-notice">');
@@ -94,7 +97,31 @@ it("keeps manual motion preferences scoped and separate from system motion", () 
 
 it("does not call local test execution a public deployment", () => {
   const markup = renderToStaticMarkup(<UiProvider><Footer config={{ network: "localnet", transactions: true }} /></UiProvider>);
-  expect(markup).toContain("Local test network");
+  expect(markup).toContain("Localnet / Network details");
+  expect(markup).toContain("separate local sandbox, not public Devnet");
   expect(markup).toContain("Experimental build. Test tokens only");
-  expect(markup).not.toContain("Solana devnet");
+  expect(markup).not.toContain("Solana Devnet");
+});
+
+it("keeps the landing footer spacious in either theme", () => {
+  for (const theme of ["light", "dark"] as const) {
+    const markup = renderToStaticMarkup(<UiProvider><Footer config={{ network: "devnet", transactions: false }} arenaHref="/play" theme={theme} /></UiProvider>);
+    expect(markup).toContain('data-layout="landing"');
+    expect(markup).toContain(`data-theme="${theme}"`);
+    expect(markup).toContain("Enter the arena");
+  }
+});
+
+it.each([
+  ["devnet", false, "Solana Devnet"],
+  ["devnet", true, "Solana Devnet"],
+  ["localnet", false, "Localnet"],
+  ["localnet", true, "Localnet"],
+] as const)("keeps %s identity separate from transaction enablement %s", (network, transactions, label) => {
+  const markup = renderToStaticMarkup(<UiProvider><Footer config={{ network, transactions }} /></UiProvider>);
+  expect(markup).toContain(`<summary>${label} / Network details</summary>`);
+  expect(markup.includes("Transactions are disabled")).toBe(!transactions);
+  expect(markup.includes("Experimental build. Test tokens only.")).toBe(transactions);
+  expect(markup).toContain("no monetary value");
+  expect(markup).not.toMatch(/Testnet|not deployed yet/);
 });

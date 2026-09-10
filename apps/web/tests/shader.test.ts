@@ -58,6 +58,21 @@ it.each(["program", "shader", "compile", "link", "buffer", "position", "uniform"
   expect(calls.drawArrays).not.toHaveBeenCalled();
 });
 
+it("refreshes a changed hand palette without resetting motion or allocating another renderer", () => {
+  const { gl, calls } = context();
+  let palette = Array.from({ length: 4 }, () => [0.1, 0.2, 0.3]);
+  const renderer = createHandFlowRenderer(gl, () => palette, 1);
+  renderer.render(400, 228, 10);
+  expect(calls.uniform3fv).toHaveBeenCalledTimes(4);
+  palette = Array.from({ length: 4 }, () => [0.7, 0.8, 0.9]);
+  renderer.render(400, 228, 11);
+  expect(calls.uniform3fv).toHaveBeenCalledTimes(8);
+  expect(calls.uniform3fv).toHaveBeenLastCalledWith(expect.anything(), palette[3]);
+  expect(calls.uniform3f).toHaveBeenLastCalledWith(expect.anything(), 400, 228, 11);
+  expect(calls.createProgram).toHaveBeenCalledTimes(1);
+  renderer.dispose();
+});
+
 it.each([[375, 620, 3], [768, 540, 2], [1280, 550, 2], [1920, 720, 2], [3840, 2160, 4], [0, 0, 0], [NaN, Infinity, NaN]])(
   "bounds the drawing buffer for %s × %s at DPR %s", (width, height, dpr) => {
     const size = drawingSize(width, height, dpr);

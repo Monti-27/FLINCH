@@ -16,8 +16,9 @@ export function FooterHands({ paused }: { paused: boolean }) {
     if (!element) return;
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const hands = [...element.querySelectorAll<HTMLElement>(".footer-hand")];
+    let palette = handFlowPalette(element);
     const surfaces = [...element.querySelectorAll<HTMLCanvasElement>("canvas")].map((canvas, index) => createShaderSurface(canvas, {
-      createRenderer: gl => createHandFlowRenderer(gl, handFlowPalette(element), index ? -1 : 1),
+      createRenderer: gl => createHandFlowRenderer(gl, () => palette, index ? -1 : 1),
       frameInterval: 0,
       pixelRatio: 1,
     }));
@@ -64,12 +65,19 @@ export function FooterHands({ paused }: { paused: boolean }) {
     }, { threshold: 0.15 });
     const mutation = new MutationObserver(sync);
     mutation.observe(element, { attributes: true, attributeFilter: ["data-paused"] });
+    const themeRoot = element.closest("[data-landing-theme]");
+    const themeObserver = new MutationObserver(() => {
+      palette = handFlowPalette(element);
+      surfaces.forEach(surface => surface.invalidate());
+    });
+    if (themeRoot) themeObserver.observe(themeRoot, { attributes: true, attributeFilter: ["data-landing-theme"] });
     observer.observe(element);
     document.addEventListener("visibilitychange", sync);
     preference.addEventListener("change", sync);
     return () => {
       observer.disconnect();
       mutation.disconnect();
+      themeObserver.disconnect();
       entrances.forEach(animation => animation.stop());
       surfaces.forEach(surface => surface.dispose());
       restore();

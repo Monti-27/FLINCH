@@ -43,7 +43,11 @@ try {
         const main = await page.locator("#story").boundingBox();
         assert(main && Math.abs(main.x - bounds.x) < 1 && Math.abs(main.width - bounds.width) < 1, "Footer must align to the inner landing rails");
         assert(bounds.width < width && bounds.width <= 1070);
-      } else assert(bounds.width === width && bounds.x === 0);
+        assert(bounds.height >= 480, "Landing footer keeps its existing spacious composition");
+      } else {
+        assert(bounds.width === width && bounds.x === 0);
+        assert(bounds.height <= 400, "Arena footer stays compact at every width");
+      }
       assert(Math.abs(lockup.x + lockup.width / 2 - width / 2) < 1);
       assert(lockup.x > bounds.x && lockup.x + lockup.width < bounds.x + bounds.width);
       const left = await footer.locator(".footer-hand-left").boundingBox();
@@ -61,7 +65,7 @@ try {
       assert(route === "/" ? channels.every(value => value > 240) : channels.every(value => value < 30));
       await footer.screenshot({ path: resolve(directory, `footer-${route === "/" ? "light" : "dark"}-${width}.png`) });
       if (route === "/" && width === 1280) await page.screenshot({ path: resolve(directory, "footer-landing-rails.png") });
-      layouts.push({ route, width, background, centered: true, contained: true, noOverlap: true, noOverflow: true, touchTargets: true });
+      layouts.push({ route, width, height: bounds.height, background, centered: true, contained: true, noOverlap: true, noOverflow: true, touchTargets: true });
     }
   }
   await page.goto(url);

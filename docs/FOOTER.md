@@ -1,5 +1,11 @@
 # Reference hands footer
 
+## Compact arena footer, 2026-09-11
+
+The arena now uses `data-layout="arena"`, independently of theme. Its scene is 200–280px tall with 16px outer padding and hands capped at 360px wide to stay clear of links. Closed height is 364px at 320/375px, 320px at 768px, 376px at 1280px and 400px at 1720/1920px. Previously it was 614px at 1280px and 500px on mobile. Landing size in both themes, artwork, shader lifecycle, logo, touch targets and rules navigation remain unchanged. The frontend design guidelines informed route-specific sizing, clearance and responsive verification.
+
+Network details show configured Solana Devnet or Localnet. Disabled transactions mean read-only preview, not undeployed program. Token/value/reference-price disclosures remain inside native details. Production evidence: `footer-browser-1789080708076` and `ui-smoke-1789080709323` under `artifacts/runs`. Preview source `/tmp/flinch-footer-build.hZvph8`, loopback port3418. No public deployment or chain transaction occurred in this UI pass.
+
 The user's 2026-09-11 request replaces the earlier Waves footer. The supplied `jhuKQgm0hkWM3rWB-optimized.mp4` is a 1720 × 1080, 60 fps, 915-frame recording of Good Fella's footer. All 915 frames were decoded and reviewed in sixteen sequential contact sheets, with full-resolution frames inspected for the character texture and finger outlines. Reference evidence and the pre-edit source backup are in `artifacts/runs/footer-hands-7Iu1E6`.
 
 ## Artwork
