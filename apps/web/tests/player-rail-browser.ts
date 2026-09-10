@@ -1,0 +1,90 @@
+import assert from "node:assert/strict";
+import { resolve } from "node:path";
+import { expect } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+
+export async function settlePlayerRail(page: Page, open: boolean) {
+  await expect(page.locator(".player-rail")).toHaveAttribute("data-expanded", String(open));
+  await expect.poll(() => page.locator(".rail-content").evaluate(element => getComputedStyle(element).opacity)).toBe(open ? "1" : "0");
+}
+
+export async function checkPlayerRail(page: Page, browser: Browser, url: string, directory: string) {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const rail = page.locator(".player-rail");
+  const trigger = page.getByRole("button", { name: "Show players, 0 of 4 seats filled" });
+  const close = page.getByRole("button", { name: "Hide players", exact: true });
+  const seat = page.getByRole("button", { name: /Player 1, open seat/ });
+  await settlePlayerRail(page, true);
+  await expect(trigger).toBeHidden();
+  await expect(close).toBeHidden();
+  await expect(seat).toBeVisible();
+  assert.equal(await page.locator(".player-slot").first().evaluate(element => getComputedStyle(element).borderBottomStyle), "solid");
+  assert.equal(await page.locator(".player-slot .seat-number").first().evaluate(element => getComputedStyle(element).borderStyle), "dashed");
+  await page.getByRole("button", { name: "Have a room code?", exact: true }).click();
+  await expect(page.getByLabel("Room address or invite link", { exact: true })).toBeVisible();
+  await seat.click();
+  await expect(page.getByLabel("Stake per player, in SOL")).toBeFocused();
+  await expect(page.getByRole("button", { name: "New round", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Create room", exact: true })).toBeDisabled();
+  await page.setViewportSize({ width: 768, height: 900 });
+  await settlePlayerRail(page, false);
+  await expect(seat).toBeHidden();
+  assert(await page.locator(".rail-content").evaluate(element => element.hasAttribute("inert")));
+  const chartBounds = await page.locator(".market-canvas").boundingBox();
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(close).toBeFocused();
+  await settlePlayerRail(page, true);
+  assert.deepEqual(await page.locator(".market-canvas").boundingBox(), chartBounds, "Player disclosure moved the chart");
+  await page.keyboard.press("Tab");
+  await expect(seat).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+  await settlePlayerRail(page, false);
+  await page.keyboard.press("Enter");
+  await page.getByText("Round duration", { exact: true }).click();
+  await settlePlayerRail(page, false);
+  await trigger.click();
+  await page.getByLabel("Stake per player, in SOL").focus();
+  await settlePlayerRail(page, false);
+  await trigger.click();
+  await seat.click();
+  await expect(page.getByLabel("Stake per player, in SOL")).toBeFocused();
+  await settlePlayerRail(page, false);
+  await trigger.click();
+  await page.getByRole("button", { name: "How the round works" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(rail).toHaveAttribute("data-motion", "reduced");
+  await trigger.click();
+  await settlePlayerRail(page, true);
+  assert.equal(await page.locator(".rail-content").evaluate(element => getComputedStyle(element).transitionDuration), "0s");
+  await page.screenshot({ path: resolve(directory, "players-768.png"), fullPage: true });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await settlePlayerRail(page, true);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await settlePlayerRail(page, false);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(rail).toHaveAttribute("data-motion", "full");
+  const touch = await browser.newContext({ viewport: { width: 375, height: 900 }, isMobile: true, hasTouch: true });
+  try {
+    const mobile = await touch.newPage();
+    await mobile.goto(url);
+    const mobileTrigger = mobile.getByRole("button", { name: "Show players, 0 of 4 seats filled" });
+    await mobileTrigger.tap();
+    await settlePlayerRail(mobile, true);
+    await expect(mobile.getByRole("button", { name: /Player 1, open seat/ })).toBeVisible();
+    await mobile.screenshot({ path: resolve(directory, "players-375.png"), fullPage: true });
+    assert(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await mobile.getByRole("button", { name: "Hide players", exact: true }).tap();
+    await settlePlayerRail(mobile, false);
+    await mobileTrigger.tap();
+    await mobile.getByRole("button", { name: /Player 1, open seat/ }).tap();
+    await expect(mobile.getByLabel("Stake per player, in SOL")).toBeFocused();
+    await settlePlayerRail(mobile, false);
+  } finally { await touch.close(); }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  return { persistentDesktop: true, keyboard: true, touch: true, reducedMotion: true, stableChart: true, emptySeatDoesNotSubmit: true };
+}
