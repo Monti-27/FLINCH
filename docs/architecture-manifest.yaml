@@ -1,0 +1,121 @@
+schema_version: "2"
+application:
+  id: "flinch"
+  network: "devnet"
+  status: "local-client-keeper-verified-reliability-ui-and-devnet-pending"
+  goal: "Public ER sell intents with base WSOL custody and Raydium test-USDC exits"
+requirements:
+  players: 4
+  duration_seconds: 90
+  cohort_seconds: 2
+  penalty_bps: 25
+  execution_window_seconds: 15
+  recovery_grace_seconds: 30
+  max_accepted_attempts_per_seat: 3
+  privacy: "public"
+  latency_target_ms: null
+  throughput_target_tps: null
+  settlement_guarantee: "Base swap, accounting and receipt are atomic; claims are separately confirmed"
+  max_uncommitted_seconds: 120
+products: ["public ER", "Session Keys", "optional reference Pricing Oracle"]
+excluded_products: ["eSPL", "VRF", "PER", "Magic Actions", "Jupiter", "Cranks"]
+actors:
+  - {id: "host", authority: "create fixed-term room, cancel before start"}
+  - {id: "wallet", authority: "fund, authorize session, queue own sell, claim"}
+  - {id: "session", authority: "queue sell for bound room and wallet only"}
+  - {id: "keeper", authority: "permissionless lifecycle calls, own fee payer only"}
+accounts:
+  - id: "ledger"
+    owner_program: "FLINCH"
+    derivation: "pda"
+    authority: "program rules"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "none"
+    delegated: false
+    commit_policy: "base transactions only"
+    close_policy: "retain"
+    funding_owner: "host"
+  - id: "control"
+    owner_program: "FLINCH original owner; Delegation Program during delegation on base"
+    derivation: "pda"
+    authority: "program rules and authenticated wallet/session"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "write"
+    delegated: true
+    delegated_by: "permissionless instruction after full funding and revision validation"
+    delegation_group: "room validator"
+    commit_policy: "freeze and undelegate every batch"
+    undelegate_policy: "permissionless closed-cohort or terminal return"
+    close_policy: "retain"
+    funding_owner: "host"
+  - id: "room_vaults"
+    owner_program: "SPL Token"
+    derivation: "ata"
+    authority: "Ledger PDA"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "none"
+    delegated: false
+    commit_policy: "base transfers only"
+    close_policy: "retain; unsolicited surplus not assigned to players"
+    funding_owner: "host rent; player stakes"
+  - id: "receipt"
+    owner_program: "FLINCH"
+    derivation: "pda"
+    authority: "execute or expire instruction"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "none"
+    delegated: false
+    commit_policy: "immutable base revision receipt"
+    close_policy: "retain"
+    funding_owner: "executor"
+transactions:
+  - {id: "fund", destination: "base", signer: "wallet", success: "transfer and unique seat atomic"}
+  - {id: "queue_sell", destination: "router-resolved ER", signer: "wallet or bound session", success: "intent accepted only"}
+  - {id: "freeze_batch", destination: "router-resolved ER", signer: "permissionless payer", success: "immutable batch and requested control return"}
+  - {id: "execute_batch", destination: "base", signer: "permissionless payer", success: "actual swap deltas, ledger, receipt and control update atomic"}
+  - {id: "expire_batch", destination: "base", signer: "permissionless payer", success: "revision consumed without financial effect"}
+  - {id: "redelegate", destination: "base", signer: "permissionless payer", success: "updated revision observed on resolved ER"}
+  - {id: "recover", destination: "base", signer: "permissionless payer", success: "terminal ledger without Control dependency"}
+  - {id: "claim", destination: "base", signer: "wallet", success: "one-shot ledger claim and actual transfer atomic"}
+routing:
+  base_rpc: "https://rpc.magicblock.app/devnet"
+  router_rpc: "https://devnet-router.magicblock.app/"
+  router_discovery_required: true
+  allow_static_er_endpoint: false
+  compatibility_checks: ["base/ER owners", "validator", "current ledger revision after redelegation", "runtime blockhash"]
+settlement:
+  strategy: "per-batch base execution after Control undelegation"
+  terminal_undelegation_actor: "permissionless payer"
+  magic_actions: []
+  commit_sponsor: "default allowance, verify redelegation lifecycle"
+  fee_vault: false
+  recovery_path: "base Ledger cutoff, invalidate every later fill, wallet claims current entitlements"
+external_dependencies:
+  - {id: "router_er", failure: "stop intents; base recovery remains available at cutoff"}
+  - {id: "raydium", failure: "no game penalty or USDC credit; expire and recover WSOL"}
+  - {id: "session", failure: "reject action; wallet may sign directly while live"}
+  - {id: "oracle", failure: "mark reference stale; do not block custody"}
+  - {id: "solana", failure: "base operations wait; do not promise availability"}
+validation:
+  - {environment: "domain", command: "bash scripts/verify-domain.sh", proves: ["integer economics", "batch replay model", "expiry and recovery model"]}
+  - {environment: "local runtime", status: "21 tests pass", proves: ["authorization", "CPI rollback", "token deltas", "recovery with Control absent"]}
+  - {environment: "local MagicBlock", status: "happy path and expiry retry pass", proves: ["control return", "repeated current-revision redelegation", "real swaps and claims"]}
+  - {environment: "client and keeper", status: "16 client and 18 keeper tests pass", proves: ["routing guards", "durable unknown submission", "base-first recovery", "bounded workers"]}
+  - {environment: "local MagicBlock client keeper", status: "normal and expiry retry pass", proves: ["shared-client swaps and claims", "worker reconstruction", "base callback evidence"]}
+  - {environment: "devnet", status: "pending", proves: ["live services", "real swaps and claims", "ten rounds"]}
+risks:
+  - "One intermittent second-batch preflight rejection remains unexplained despite passing reruns"
+  - "Hosted handoff latency and deliberately delayed stale commitments unverified"
+  - "Raydium source-to-deployed-bytecode equivalence unverified"
+  - "Circle-USDC pool liquidity not provisioned"
+  - "Session revocation propagation unverified"
+  - "Shared DEX pool and fee payer contention"
+  - "Test pool price is not mainnet SOL/USD"
+open_questions:
+  - {id: "devnet_program_id", value: "unknown", gate: "authorized deployment"}
+  - {id: "raydium_pool_id", value: "unknown", gate: "authorized pool setup and verification"}
+  - {id: "oracle_feed_account", value: "unknown", gate: "reference oracle verification"}

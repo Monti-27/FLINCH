@@ -1,0 +1,428 @@
+schema_version: "1"
+application:
+  id: "flinch"
+  tagline: "Sell first. Pay the holders."
+  goal: "A four-player timed WSOL game where sellers pay rank penalties to the final holder"
+  network: "devnet"
+  status: "superseded-token-exit-design"
+
+requirements:
+  players: 4
+  asset: "WSOL"
+  duration_seconds: 90
+  cohort_seconds: 2
+  vrf_timeout_seconds: 10
+  penalty_bps: [2000, 1200, 600]
+  latency_target_ms: 250
+  throughput_target_tps: null
+  privacy: "public"
+  settlement_guarantee: "Every funded token unit is paid to a player on the ER before token accounts return to Solana"
+  max_uncommitted_seconds: 180
+
+products:
+  - id: "ephemeral_rollup"
+    purpose: "Low-latency shared match state and token movements"
+  - id: "ephemeral_spl_token"
+    purpose: "WSOL-backed balances in the ER and withdrawal to Solana"
+  - id: "session_keys"
+    purpose: "One wallet-free SELL action during a live match"
+  - id: "pricing_oracle"
+    purpose: "Verified SOL/USD context that never controls payout"
+  - id: "vrf"
+    purpose: "Fair ordering of simultaneous and terminal cohorts"
+
+excluded_products:
+  - "Private Ephemeral Rollups"
+  - "Private Payments"
+  - "Cranks"
+  - "Magic Actions"
+
+actors:
+  - id: "host"
+    authority: "Creates and funds a room; cannot alter a live round"
+  - id: "player_wallet"
+    authority: "Funds, joins, creates or revokes session, withdraws"
+  - id: "session_signer"
+    authority: "Calls queue_sell for one player before expiry"
+  - id: "permissionless_resolver"
+    authority: "Resolves elapsed cohorts, timeouts, payouts, and finalization under program rules"
+  - id: "vrf_oracle"
+    authority: "Calls authenticated scoped randomness callback"
+  - id: "demo_bot"
+    authority: "Ordinary player wallet controlled by demo tooling"
+
+accounts:
+  - id: "round"
+    owner_program: "FLINCH"
+    derivation: "pda"
+    seeds: "round, host, host_nonce"
+    authority: "program rules"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "write"
+    delegated: true
+    delegated_by: "host"
+    delegation_group: "round-validator"
+    privacy: "public"
+    commit_policy: "terminal"
+    undelegate_policy: "after every payout is credited"
+    close_policy: "retain through submission"
+    funding_owner: "host"
+  - id: "round_wsol_ata"
+    owner_program: "SPL Token"
+    derivation: "ata"
+    authority: "round PDA"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "write"
+    delegated: false
+    delegated_by: "none"
+    delegation_group: "round-validator"
+    privacy: "public"
+    commit_policy: "represented by round_eata lifecycle"
+    undelegate_policy: "represented by round_eata lifecycle"
+    close_policy: "optional after pool is zero"
+    funding_owner: "host"
+  - id: "round_eata"
+    owner_program: "Ephemeral SPL Token"
+    derivation: "pda"
+    seeds: "round PDA, WSOL mint"
+    authority: "round PDA"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "write"
+    delegated: true
+    delegated_by: "round setup"
+    delegation_group: "round-validator"
+    privacy: "public"
+    commit_policy: "eSPL lifecycle"
+    undelegate_policy: "after pool balance reaches zero"
+    close_policy: "retain until recovery validation passes"
+    funding_owner: "host"
+  - id: "player_wsol_ata"
+    owner_program: "SPL Token"
+    derivation: "ata"
+    authority: "player wallet"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "write"
+    delegated: false
+    delegated_by: "none"
+    delegation_group: "round-validator"
+    privacy: "public"
+    commit_policy: "represented by player_eata lifecycle"
+    undelegate_policy: "represented by player_eata lifecycle"
+    close_policy: "user may close after withdrawal to unwrap WSOL"
+    funding_owner: "player"
+  - id: "player_eata"
+    owner_program: "Ephemeral SPL Token"
+    derivation: "pda"
+    seeds: "player wallet, WSOL mint"
+    authority: "player wallet"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "write"
+    delegated: true
+    delegated_by: "player"
+    delegation_group: "round-validator"
+    privacy: "public"
+    commit_policy: "eSPL lifecycle"
+    undelegate_policy: "after payout credit"
+    close_policy: "user choice after withdrawal"
+    funding_owner: "player or demo sponsor"
+  - id: "global_vault"
+    owner_program: "Ephemeral SPL Token"
+    derivation: "pda"
+    seeds: "WSOL mint"
+    authority: "Ephemeral SPL Token program"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "none"
+    delegated: false
+    delegated_by: "none"
+    delegation_group: "none"
+    privacy: "public"
+    commit_policy: "none"
+    undelegate_policy: "none"
+    close_policy: "protocol managed"
+    funding_owner: "depositors"
+  - id: "global_vault_ata"
+    owner_program: "SPL Token"
+    derivation: "ata"
+    authority: "global_vault"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "none"
+    delegated: false
+    delegated_by: "none"
+    delegation_group: "none"
+    privacy: "public"
+    commit_policy: "none"
+    undelegate_policy: "none"
+    close_policy: "protocol managed"
+    funding_owner: "depositors"
+  - id: "session_token"
+    owner_program: "Session Keys"
+    derivation: "pda"
+    seeds: "current SDK derivation"
+    authority: "player wallet"
+    created_on: "base"
+    persistence: "base-settled"
+    er_access: "read"
+    delegated: false
+    delegated_by: "none"
+    delegation_group: "none"
+    privacy: "public"
+    commit_policy: "none"
+    undelegate_policy: "none"
+    close_policy: "expire or revoke"
+    funding_owner: "player or demo sponsor"
+  - id: "sol_usd_oracle"
+    owner_program: "MagicBlock Pricing Oracle"
+    derivation: "external"
+    seeds: "configured provider and feed"
+    authority: "MagicBlock republisher"
+    created_on: "external"
+    persistence: "external"
+    er_access: "read"
+    delegated: null
+    delegated_by: "service"
+    delegation_group: "round-validator"
+    privacy: "public"
+    commit_policy: "service managed"
+    undelegate_policy: "service managed"
+    close_policy: "service managed"
+    funding_owner: "service"
+  - id: "vrf_queue"
+    owner_program: "MagicBlock VRF"
+    derivation: "external"
+    seeds: "SDK constant"
+    authority: "VRF oracle"
+    created_on: "external"
+    persistence: "external"
+    er_access: "write"
+    delegated: true
+    delegated_by: "service"
+    delegation_group: "round-validator"
+    privacy: "public"
+    commit_policy: "service managed"
+    undelegate_policy: "service managed"
+    close_policy: "service managed"
+    funding_owner: "service"
+
+transactions:
+  - id: "initialize_round"
+    actor: "host"
+    signers: ["host"]
+    writable_accounts: ["round", "round_wsol_ata", "round_eata", "global_vault", "global_vault_ata"]
+    destination: "base"
+    preconditions: ["canonical parameters", "WSOL mint"]
+    success: "Round and pool custody exist"
+    failure: "retry only missing idempotent initialization steps"
+  - id: "delegate_round"
+    actor: "host"
+    signers: ["host"]
+    writable_accounts: ["round"]
+    destination: "base"
+    preconditions: ["Round not live", "validator identity selected"]
+    success: "router reports expected FQDN"
+    failure: "remain preparing"
+  - id: "deposit_player"
+    actor: "player_wallet"
+    signers: ["player wallet"]
+    writable_accounts: ["player_wsol_ata", "player_eata", "global_vault_ata"]
+    destination: "base"
+    preconditions: ["exact WSOL balance", "room validator selected"]
+    success: "player ER balance is available on room FQDN"
+    failure: "inspect source, vault, eATA, and delegation state before retry"
+  - id: "join"
+    actor: "player_wallet"
+    signers: ["player wallet"]
+    writable_accounts: ["round", "round_wsol_ata", "player_wsol_ata"]
+    destination: "resolved ER"
+    preconditions: ["all writable token state co-located", "unique seat", "exact stake"]
+    success: "stake transfer and seat write are atomic"
+    failure: "no seat without token transfer"
+  - id: "create_session"
+    actor: "player_wallet"
+    signers: ["player wallet", "session signer"]
+    writable_accounts: ["session_token"]
+    destination: "base"
+    preconditions: ["target is FLINCH"]
+    success: "session token has expected authority, signer, and expiry"
+    failure: "use wallet-signing fallback"
+  - id: "start_round"
+    actor: "host"
+    signers: ["host"]
+    writable_accounts: ["round"]
+    destination: "resolved ER"
+    preconditions: ["four funded seats"]
+    success: "started_at and ends_at stored once"
+    failure: "remain Ready"
+  - id: "queue_sell"
+    actor: "player_wallet or session_signer"
+    signers: ["payer"]
+    writable_accounts: ["round"]
+    destination: "resolved ER"
+    preconditions: ["valid player and session if used", "one action nonce", "no unresolved predecessor"]
+    success: "seller bit stored in current cohort once"
+    failure: "player remains holding unless transaction succeeds"
+  - id: "request_tie_vrf"
+    actor: "permissionless_resolver"
+    signers: ["payer"]
+    writable_accounts: ["round", "vrf_queue"]
+    destination: "resolved ER"
+    preconditions: ["closed multi-player cohort"]
+    success: "nonce-bound request state is persisted"
+    failure: "timeout path remains available"
+  - id: "consume_tie_randomness"
+    actor: "vrf_oracle"
+    signers: ["scoped VRF identity"]
+    writable_accounts: ["round", "round_wsol_ata", "player_wsol_ata"]
+    destination: "resolved ER"
+    preconditions: ["matching unconsumed request"]
+    success: "order and payouts are applied once"
+    failure: "timeout path remains available"
+  - id: "resolve_tie_timeout"
+    actor: "permissionless_resolver"
+    signers: ["payer"]
+    writable_accounts: ["round", "round_wsol_ata", "player_wsol_ata"]
+    destination: "resolved ER"
+    preconditions: ["request older than ten seconds"]
+    success: "deterministic value-conserving result"
+    failure: "retry from unchanged state"
+  - id: "finalize_round"
+    actor: "permissionless_resolver"
+    signers: ["payer"]
+    writable_accounts: ["round", "round_wsol_ata", "player_wsol_ata"]
+    destination: "resolved ER"
+    preconditions: ["one holder", "no unresolved cohort"]
+    success: "pool zero and Round Settled"
+    failure: "resume unpaid idempotent payout"
+  - id: "undelegate_player_eata"
+    actor: "player_wallet"
+    signers: ["player wallet"]
+    writable_accounts: ["player_eata"]
+    destination: "resolved ER"
+    preconditions: ["payout credited"]
+    success: "base commitment confirmed and owner restored"
+    failure: "keep settled-on-ER state and retry safely"
+  - id: "withdraw_player"
+    actor: "player_wallet"
+    signers: ["player wallet"]
+    writable_accounts: ["player_eata", "global_vault_ata", "player_wsol_ata"]
+    destination: "base"
+    preconditions: ["base commitment confirmed", "eATA owner restored"]
+    success: "destination WSOL ATA delta equals entitlement"
+    failure: "funds remain withdrawable and operation can be rebuilt"
+  - id: "undelegate_round"
+    actor: "permissionless_resolver"
+    signers: ["payer"]
+    writable_accounts: ["round"]
+    destination: "resolved ER"
+    preconditions: ["Settled or Cancelled"]
+    success: "terminal Round is visible on base"
+    failure: "retain ER terminal state and retry commit"
+
+routing:
+  base_rpc: "https://rpc.magicblock.app/devnet"
+  router_rpc: "https://devnet-router.magicblock.app/"
+  er_rpc: "router getDelegationStatus result.fqdn"
+  router_discovery_required: true
+  allow_static_er_endpoint: false
+  compatibility_checks:
+    - "Round and all eATAs resolve to one FQDN"
+    - "base owner is the Delegation Program while delegated"
+    - "ER owner is the original account program"
+    - "transaction blockhash comes from its destination runtime"
+
+settlement:
+  strategy: "terminal"
+  triggers: ["one holder remains", "round timer expires and terminal cohort resolves"]
+  terminal_undelegation_actor: "permissionless resolver for Round; each wallet for its eATA"
+  magic_actions: []
+  commit_sponsor: "MagicBlock default allowance"
+  fee_vault: false
+  delegated_fee_payer: false
+  recovery_path: "resolve pending cohort, finish idempotent payouts, confirm ER terminal state, undelegate, verify base ownership, withdraw"
+
+external_dependencies:
+  - id: "magic_router"
+    failure: "block room start and expose retry"
+  - id: "ephemeral_spl_token"
+    failure: "stop funding or withdrawal and reconcile account balances before retry"
+  - id: "session_keys"
+    failure: "fall back to direct wallet signing before round end"
+  - id: "pricing_oracle"
+    failure: "mark price stale but preserve token settlement"
+  - id: "vrf_oracle"
+    failure: "resolve by deterministic timeout rule"
+  - id: "wallet"
+    failure: "session may continue until expiry; withdrawal waits for wallet"
+
+dependency_candidates:
+  rust_ephemeral_rollups_sdk: "0.17.0"
+  rust_ephemeral_rollups_sdk_features: ["anchor", "vrf"]
+  rust_ephemeral_spl_api: "git rev 7288a12befccc5541f3411b03699ba0f57e6c078"
+  rust_wheels: "git rev b2ab8b7b0f3fb7f3d01d2de3b13803f8e98d65a9 via Cargo.lock"
+  npm_ephemeral_rollups_sdk: "0.17.0"
+  npm_ephemeral_rollups_kit: "0.17.0 optional"
+  rust_session_keys: "3.1.1"
+  npm_gum_sdk: "3.0.10"
+  npm_anchor: "0.32.1"
+  npm_solana_web3: "1.98.4"
+  npm_spl_token: "0.4.15"
+  ephemeral_spl_api_git_rev: "7288a12befccc5541f3411b03699ba0f57e6c078"
+  lock_status: "Rust program dependencies locked; client dependencies pending"
+
+validation:
+  - environment: "unit"
+    proves: ["penalty schedule", "token conservation", "cohort state machine", "replay protection", "timeout remainder distribution"]
+    command: "cargo test --workspace"
+    pass_signal: "18 deterministic protocol and eSPL boundary tests pass"
+  - environment: "sbf"
+    proves: ["deployable program artifact", "bounded Anchor account parsing stack", "IDL generation"]
+    command: "scripts/verify-program.sh"
+    pass_signal: "target/deploy/flinch.so and target/idl/flinch.json are generated"
+  - environment: "program-test"
+    proves: ["account constraints", "authorization", "callback correlation logic"]
+    command: "to be defined after compatibility spike"
+    pass_signal: "positive and negative instruction matrix passes"
+  - environment: "mb-stack or official local harness"
+    proves: ["local delegation", "eSPL transfer lifecycle", "commit and undelegation"]
+    command: "to be defined after compatibility spike"
+    pass_signal: "full token cycle completes with captured signatures"
+  - environment: "devnet"
+    proves: ["router placement", "live session authorization", "live SOL/USD snapshot", "live scoped VRF", "withdrawal to base ATA"]
+    command: "scripted end-to-end runner"
+    pass_signal: "ten sequential rounds with retained evidence"
+
+risks:
+  - id: "dependency_skew"
+    mitigation: "keep ER SDK spl disabled, pin eSPL API source, and require native plus SBF builds"
+  - id: "unpublished_espl_api"
+    mitigation: "pin official git revision and consume exports rather than copied bytes"
+  - id: "validator_mismatch"
+    mitigation: "pin validator and verify every account through router"
+  - id: "vrf_latency"
+    mitigation: "ten-second deterministic conservation-safe timeout"
+  - id: "settlement_confusion"
+    mitigation: "separate ER, base, withdrawable, and withdrawn UI states"
+  - id: "oracle_outage"
+    mitigation: "remove price from economic control path"
+  - id: "mainnet_risk"
+    mitigation: "devnet-only gate and no production claims"
+
+open_questions:
+  - id: "stake_bounds"
+    owner: "product and protocol"
+    due: "compatibility spike"
+  - id: "validator_region"
+    owner: "integration"
+    due: "devnet latency test"
+  - id: "withdrawal_builder"
+    owner: "integration"
+    due: "compatibility spike"
+  - id: "pool_bootstrap_balance"
+    owner: "protocol"
+    due: "compatibility spike"
