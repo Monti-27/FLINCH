@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import type { SceneMotion } from "./bento-motion.tsx";
+import { decisionThemeClasses } from "../theme/classes.ts";
 import styles from "./scenes.module.css";
 
 export function DecisionScene({ phase, transition }: SceneMotion) {
   const sell = phase === 1 || phase === 2;
-  return <div className={styles.decision}>
+  return <div className={`${styles.decision} ${decisionThemeClasses}`}>
     <div className={styles.decisionHeading}><span>Your move</span><span>90 seconds</span></div>
     <div className={styles.decisionClock}>01:30</div>
     <div className={styles.keys}>

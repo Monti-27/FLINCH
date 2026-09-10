@@ -9,6 +9,7 @@ import { RollupScene } from "./rollup-scene.tsx";
 import { DecisionScene } from "./decision-scene.tsx";
 import { HoldersScene } from "./holders-scene.tsx";
 import { SettlementScene } from "./settlement-scene.tsx";
+import { bentoThemeClasses } from "../theme/classes.ts";
 import styles from "./bento.module.css";
 
 const cards: { name: SceneName; title: string; text: string; Scene: ComponentType<SceneMotion> }[] = [
@@ -28,7 +29,7 @@ function BentoCard({ card, index }: { card: typeof cards[number]; index: number 
 }
 
 function BentoContent() {
-  return <section id="onchain" className={styles.section} aria-labelledby="settlement-title">
+  return <section id="onchain" className={`${styles.section} ${bentoThemeClasses}`} aria-labelledby="settlement-title">
     <span id="how-it-works" className={styles.legacyAnchor} aria-hidden="true" />
     <header className={styles.introduction}>
       <p className={styles.eyebrow}>UNDER THE SURFACE</p>

@@ -1,12 +1,15 @@
 import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
 import { BrandLogo } from "../../components/brand/logo.tsx";
 import { EcosystemIcon } from "../../components/brand/ecosystem-icon.tsx";
-import { Footer } from "../../components/shell/footer.tsx";
 import { HelpDialog } from "../../components/shell/help-dialog.tsx";
 import { UiProvider } from "../../providers/ui-provider.tsx";
 import { HeroStandoff } from "./hero-standoff.tsx";
 import { LandingDetails } from "./landing-details.tsx";
 import { RevealSequence } from "./reveal.tsx";
+import { LandingThemeProvider } from "./theme/provider.tsx";
+import { LandingThemeToggle } from "./theme/toggle.tsx";
+import { LandingFooter } from "./theme/footer.tsx";
+import { darkActionHover } from "./theme/classes.ts";
 import styles from "./landing.module.css";
 import hero from "./hero.module.css";
 
@@ -16,7 +19,7 @@ export function LandingPage() {
     transactions: process.env.NEXT_PUBLIC_FLINCH_ENABLE_TRANSACTIONS === "true",
   };
   return <UiProvider>
-    <div className={styles.landing}>
+    <LandingThemeProvider className={styles.landing}>
       <a className="skip-link" href="#story">Skip to the story</a>
       <div className={styles.frame}>
         <header className={styles.header}>
@@ -24,7 +27,10 @@ export function LandingPage() {
           <nav aria-label="Landing navigation" className={styles.nav}>
             <a href="#onchain">How it works</a><a href="#questions">FAQ</a>
           </nav>
-          <a href="/play" className={styles.headerAction}>Open app<ArrowUpRight size={14} aria-hidden /></a>
+          <div className="flex items-center gap-2">
+            <LandingThemeToggle />
+            <a href="/play" className={`${styles.headerAction} ${darkActionHover}`}>Open app<ArrowUpRight size={14} aria-hidden /></a>
+          </div>
         </header>
         <RevealSequence className={styles.content}>
           <main id="story" tabIndex={-1}>
@@ -33,10 +39,10 @@ export function LandingPage() {
                 <h1 id="landing-title">Four players.<br /><span>Who flinches first?</span></h1>
                 <p className={hero.description}>Equal stakes. Ninety seconds.<br />Sell your WSOL. Pay the players who hold.</p>
                 <div className={hero.actions}>
-                  <a href="/play" className={hero.primary}>Enter the arena<ArrowRight size={16} aria-hidden /></a>
+                  <a href="/play" className={`${hero.primary} ${darkActionHover}`}>Enter the arena<ArrowRight size={16} aria-hidden /></a>
                   <a href="#onchain" className={hero.secondary}>How to play<ArrowDown size={16} aria-hidden /></a>
                 </div>
-                <p className={hero.disclosure}>{config.transactions ? "Experimental build" : "Preview build"}<span aria-hidden> · </span>Test tokens only</p>
+                <p className={hero.disclosure}>{config.network === "devnet" ? "Devnet" : "Localnet"} {config.transactions ? "build" : "preview"}<span aria-hidden> · </span>Test tokens only</p>
               </div>
               <HeroStandoff />
             </section>
@@ -48,10 +54,10 @@ export function LandingPage() {
             </div>
             <LandingDetails />
           </main>
-          <Footer config={config} arenaHref="/play" theme="light" />
+          <LandingFooter config={config} />
         </RevealSequence>
       </div>
-    </div>
+    </LandingThemeProvider>
     <HelpDialog />
   </UiProvider>;
 }

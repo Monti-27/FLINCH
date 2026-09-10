@@ -26,6 +26,7 @@
     "@solana/web3.js": "1.98.4",
     "class-variance-authority": "0.7.1",
     "framer-motion": "13.2.0",
+    "glimm": "0.3.0",
     "klinecharts": "10.0.3",
     "lucide-react": "1.41.0",
     "next": "16.3.4",
