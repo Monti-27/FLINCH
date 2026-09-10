@@ -8,7 +8,7 @@ Hold longer and you collect those cuts. Sell and you leave with what the swap ac
 
 Built for MagicBlock Blitz V8, with live sell intents on an Ephemeral Rollup and real Raydium swaps on Solana.
 
-Play on Devnet: [flinch-game.up.railway.app/play](https://flinch-game.up.railway.app/play). The frontend, signing keeper and PostgreSQL are running on Railway with transactions enabled. A four-wallet public-browser round completed three real swaps and four exact withdrawals. No local keeper is required. See [Railway hosting](docs/RAILWAY.md) for evidence, updates and operating limits.
+Play on Devnet: [flinch.up.railway.app/play](https://flinch.up.railway.app/play). The frontend, signing keeper and PostgreSQL are running on Railway with transactions enabled. A four-wallet public-browser round completed three real swaps and four exact withdrawals. No local keeper is required. See [Railway hosting](docs/RAILWAY.md) for evidence, updates and operating limits.
 
 | | |
 | --- | --- |

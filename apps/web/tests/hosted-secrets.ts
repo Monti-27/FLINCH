@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { chromium } from "@playwright/test";
 import { writePrivate } from "../../../tools/devnet/private-files.ts";
 
-const origin = "https://flinch-game.up.railway.app";
+const origin = "https://flinch.up.railway.app";
 const privateRoot = "/Users/montisaini/.config/flinch/devnet";
 const keyPaths = ["deployer.json", "keeper.json", "buffer.json", "build/flinch_v2-keypair.json",
   ...[0, 1, 2, 3].map(seat => `player-${seat}.json`)];

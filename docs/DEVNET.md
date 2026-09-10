@@ -2,7 +2,7 @@
 
 ## Public Railway gameplay, 2026-09-11
 
-Use [the public arena](https://flinch-game.up.railway.app/play). Transactions and the dedicated hosted keeper are enabled. Web → private backend → PostgreSQL health checks pass. The laptop's Devnet keeper was drained and stopped with no unresolved submissions; no local process is required to progress public games. Never run the local signing keeper or the local-keeper soak command concurrently with hosted execution.
+Use [the public arena](https://flinch.up.railway.app/play). Transactions and the dedicated hosted keeper are enabled. Web → private backend → PostgreSQL health checks pass. The laptop's Devnet keeper was drained and stopped with no unresolved submissions; no local process is required to progress public games. Never run the local signing keeper or the local-keeper soak command concurrently with hosted execution.
 
 `devnet-browser-J3INdz/result.json` verifies four public-browser deposits, three actual Raydium swaps and four exact claims, with both room vaults empty. It also covers direct-wallet and session SELL, reload, cancelled create/claim requests, explicit quote expiry, four base session revocations and a withdrawal during a browser-only ER outage. The room is `4ptoEDeLaqRAXCcX4apwZCMwgeSyo6Hej3MWxREw5xcC`. `hosted-proof.json` verifies ten keeper transactions and three base returns from the hosted PostgreSQL journal; `hosted-restart.json` verifies its twenty transitions remained identical after a new container took over. See RAILWAY for exact deployment IDs and secret boundaries.
 

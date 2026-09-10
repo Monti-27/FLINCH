@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium, expect } from "@playwright/test";
 
-const origin = "https://flinch-game.up.railway.app";
+const origin = "https://flinch.up.railway.app";
 const backend = "https://flinch-keeper.up.railway.app";
 const active = process.argv[2] === "--active";
 assert(process.argv.length === 2 || process.argv.length === 3 && active);

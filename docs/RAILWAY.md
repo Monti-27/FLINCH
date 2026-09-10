@@ -6,12 +6,14 @@ The existing BlitzMine application services were reused for FLINCH in Satvik's R
 
 | Component | Service | Address or purpose |
 | --- | --- | --- |
-| Frontend | `flinch-web` | https://flinch-game.up.railway.app |
+| Frontend | `flinch-web` | https://flinch.up.railway.app |
 | Keeper backend | `flinch-keeper` | https://flinch-keeper.up.railway.app/health |
 | PostgreSQL | Existing `Postgres` | Private network; isolated `flinch` database |
 | Legacy Redis | Existing `Redis` | Retained for BlitzMine recovery; FLINCH does not use it |
 
 Project: `faab688f-6c36-46c1-921f-a379851d470f` (`incredible-friendship`). Production environment: `a8e640c0-d26f-43dc-a8c9-9f4bc715a39e`.
+
+The public frontend domain was renamed from `flinch-game.up.railway.app` to `flinch.up.railway.app` on 2026-09-11. Private hostnames are now `flinch.railway.internal` for web and `flinch-keeper.railway.internal` for the keeper. The keeper's public health domain is unchanged. The frontend uses a service-variable reference for its private backend URL; it must be redeployed after a private-host rename so the running environment receives the new value. Old public links do not redirect automatically; generate new invites on the new origin. Historical evidence retains the actual origin used for each run.
 
 The public site is an **enabled experimental Devnet game**. `NEXT_PUBLIC_FLINCH_ENABLE_TRANSACTIONS=true` and `FLINCH_KEEPER_EXECUTE=true`. Only dedicated keeper `33sxC2jXiptFfxoGgP52qEjDvpdGksZPmN6ZHTBfYMJ8` is supplied through a sealed secret. The deployment/upgrade-authority key stays outside Railway. The local Devnet keeper was drained and stopped before activation, with no pending submissions and its journal preserved. Do not start a second local signing keeper against this scope.
 
@@ -61,6 +63,8 @@ Both services build from the monorepo root with Railpack, Bun 1.3.14 and Node 24
 
 The imported [.railway/railway.ts](../.railway/railway.ts) preserves secrets, activation settings and the private backend reference. It does not deploy source. Its repository-less `github` source types preserve metadata left by disconnected services; neither is connected to BlitzMine. CLI 5.49.6 and SDK 3.11.0 were used. The no-change plan predates activation; review a fresh exact infrastructure plan before applying it. No IaC apply was needed here.
 
+After the networking rename, the read-only plan reports one keeper networking update because its current graph omits the keeper private endpoint. Dedicated private-network status nevertheless reports `flinch-keeper.railway.internal` ACTIVE, and web health confirms the private connection works. The desired graph contains the correct new name. The discrepancy's cause is not established; no IaC apply or keeper replacement was performed to resolve it.
+
 `FLINCH_KEEPER_URL` on web references the keeper's private Railway domain and port. Only the server health route uses it. The web service has no keeper key or database credentials. Its health requires the backend to be running with transactions enabled and PostgreSQL connected; a healthy standby container is not gameplay readiness. The keeper materializes its sealed key into an owner-only temporary file, verifies its public identity and removes the file at shutdown.
 
 The isolated database checks use the existing `flinch_test_runner` account, never `flinch_app`. `tests/keeper/hosted-check.ts --test-database` reads the test connection URL from stdin. Do not pass credentials as command arguments or store them in this repository. The production account intentionally cannot connect to `flinch_test`.
@@ -87,6 +91,8 @@ BlitzMine's running deployments were removed, not its services or data. Domains 
 Rollback needs a separately approved cutover: stop FLINCH applications, restore backed-up BlitzMine configuration/domains and deploy the archived source. Its untouched `railway` database is the first recovery candidate. Never restore the whole PostgreSQL volume over FLINCH data. If necessary, restore a dump into a separate database and validate it before switching traffic.
 
 ## Verification and limits
+
+After the domain rename, frontend redeployment `629d985f-8e28-4618-899c-6042b5f7b64b` reached SUCCESS and refreshed the private backend URL without uploading local source. New-origin smoke `artifacts/runs/railway-smoke-1789088402278/result.json` passes health, live market data, navigation, rules, wallet picker, invalid-room handling, reload and 1280/768/375px layouts, with no page errors or signing. Both private endpoints and the public frontend domain report ACTIVE. Frontend type check, 374-module source scan and 731-file selected artifact/secret scan pass. Earlier full-round evidence below was not rerun during this networking-only change.
 
 Activation deployments `1073095c-e9db-43d2-b0d4-a096dca216bf` (web) and `584fee1e-d250-4a67-b7c5-dfd113045448` (keeper) reached `SUCCESS`. Replacement keeper `5e489458-e878-4f5c-adef-dd78ea57e53a` also reached `SUCCESS`, returned to `running`, and retained the completed game's exact journal. No active rooms were discovered before replacement. Original pre-activation source and variable snapshots are in owner-only `/Users/montisaini/.config/flinch/railway-activation-sHOMJO`.
 
