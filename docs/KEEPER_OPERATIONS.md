@@ -1,5 +1,7 @@
 # Running the keeper
 
+For the prepared public devnet identity, pool, keys and funding workflow, use [DEVNET](DEVNET.md). Configuration may now use `rooms: []` with an explicit `discovery: { pool, validator }`. Discovery is scoped to the selected network's program, admits at most 128 active rooms and reports saturation. Pending file journals are restored before discovery, including terminal rooms needing reconciliation. Discovery failure does not evict known rooms or stop their base recovery.
+
 The keeper is a separate Node process, not a browser task. It uses the existing room worker and durable operation journal. It never holds player wallets, quotes on their behalf, changes a signed minimum, or claims their tokens. A dedicated keeper key pays its own network fees and required account rent. Devnet fees still consume test SOL.
 
 No public FLINCH deployment, funded devnet pool or hosted keeper is configured by this entrypoint. Deployment, public funding and execution remain separately authorized. The local tests below do not make the game publicly playable.

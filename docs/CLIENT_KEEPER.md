@@ -4,7 +4,7 @@
 
 One shared, browser-compatible client owns generated-IDL instruction builders, account decoding, exact base-unit values, network validation and placement checks. The keeper consumes that client; it never imports fixtures, controls player keys, changes minima or computes settlement payouts.
 
-No database, message broker or global writable room registry. Start with explicit room addresses and at most four concurrent room jobs. Public discovery and a deployable service API are later work. Existing Rust economics and program authorization remain authoritative.
+There is no message broker or global writable onchain room registry. The runtime supports explicit rooms and bounded discovery scoped to one pool and validator, with at most four concurrent room jobs. Local execution uses a file journal; Railway uses PostgreSQL for durable operation history and a separate singleton lease. Neither store controls balances. Existing Rust economics and program authorization remain authoritative. See RAILWAY for the enabled hosted deployment and tested handover.
 
 ## Modules
 
@@ -43,7 +43,7 @@ The shared client and explicit-room keeper library are implemented. Local stack 
 
 One earlier local run rejected its second execute preflight with `DomainRejected: seller has no remaining position`. Later normal and expiry runs passed, but the rejection's cause has not been established. Keep the failed run and expanded account observations; do not label this integration stable or production-ready until reproduced and explained.
 
-The quote adapter and initial browser UI are now implemented. `quotes` computes exact-input pool estimates and per-seat cohort ranges. Quoted-intent helpers recheck venue, room revision, placement, cohort, minima and time before signing/submission. `accounts/receipts` validates bounded confirmed receipts and reconciles their sums against Ledger totals. Browser polling is sequential and cancels stale results; no public discovery/API or hosted keeper service exists yet. Read QUOTES and FRONTEND before extending.
+The quote adapter and browser UI are implemented. `quotes` computes exact-input pool estimates and per-seat cohort ranges. Quoted-intent helpers recheck venue, room revision, placement, cohort, minima and time before signing/submission. `accounts/receipts` validates bounded confirmed receipts and reconciles their sums against Ledger totals. Browser polling is sequential and cancels stale results. The hosted keeper discovers allowed rooms directly onchain; its only HTTP interface is health, not a signing or custodial API. Read QUOTES and FRONTEND before extending.
 
 ## Safety and verification
 

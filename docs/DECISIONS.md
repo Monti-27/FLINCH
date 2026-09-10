@@ -1,5 +1,17 @@
 # FLINCH decisions
 
+## D018: Separate devnet identity and guarded deployment, 2026-09-11
+
+The existing V2 deployment key is `8mGLM6MoGgJBfJXAESN5C5fmKXCwnfinDGXX8drPFEie`, but local source and accounts use `JDQgyFxwZJUpA31y2qhqhGgwfm5k7zANYUY1ctkqPB9y`. Preserve the running sandbox. A `devnet` build feature selects the deployment-key identity; the client selects the matching generated IDL, instruction owner, PDAs, sessions, receipt decoder and return proof. Unsupported program identities reject. The ABI generator checks that only identity-dependent metadata differs.
+
+Use a dedicated deployer/upgrade authority, persistent buffer, keeper payer and four test wallets stored outside the workspace. Default CLI wallets and workspace-wide deployment are not the release path. Deployment is explicit, devnet-genesis checked, serialized and verified against a staged binary. Funding and test commands require their own execution flags and retain uncertain submissions.
+
+Use the already funded Raydium pool `GoZmddUBTdiyRoGZSfxwX8p5ZNoVhDo42YN996JdDwoi`; no new pool or liquidity is authorized by this preparation. The September 10 upstream upgrade was reviewed separately from the old local pin and its downloaded binary passed runtime/CPI tests. Source-to-bytecode equivalence remains unverified. A failed program hash, pool check, fresh quote or confirmed return must stop the relevant operation.
+
+The keeper can discover rooms only within an explicit pool/validator scope. It restores pending room journals even when discovery would exclude their now-terminal ledgers, reports capacity and keeps known-room recovery independent of discovery errors. This is bounded demo operation, not an unbounded public indexing service.
+
+No public transaction was sent during preparation. Funding, actual deployment, hosted tests, extension-wallet proof and security release gates remain open. See DEVNET and TESTING.
+
 ## D017: Real-sales migration, 2026-09-05
 
 The user requested implementation after selecting MagicBlock live gameplay, Solana custody, Circle devnet USDC, and Raydium devnet CPMM. This explicitly replaces the prior no-DEX architecture. The old specification and its reasons remain in [legacy/DECISIONS.md](legacy/DECISIONS.md).

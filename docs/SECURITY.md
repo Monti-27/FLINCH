@@ -28,6 +28,8 @@ If a swap response is lost, read signature status, Receipt and Ledger before reb
 
 Keep session secrets in browser memory and deployer/keeper secrets outside the repository. Do not log signed payloads, private keys, seed phrases, bearer tokens, or credential-bearing URLs. Test wallets and funding scripts stay in test-kit, never frontend bundles. Logs may contain public signatures, account keys, revisions and base-unit amounts.
 
+The enabled Railway demo receives only the dedicated keeper key through a sealed variable. The upgrade authority remains local. The hosted process validates payer identity, materializes an owner-only temporary file and cleans it up at shutdown; web receives neither this secret nor database credentials. PostgreSQL's restricted application role stores public operations. A dedicated connection lease serializes hosted workers during replacement, with abort on connection loss. This is an operational guard for cooperating instances, not a replacement for onchain authorization or replay checks. The separate test role and database are required for integration tests.
+
 A controlled upgrade authority remains a real trust risk even without economic admin instructions. Publish it after authorized deployment; do not claim immutability. Never delete a live account/receipt merely to unblock a test.
 
 Mainnet requires independent program/economic review, liquidity and MEV analysis, legal review, upgrade governance, monitoring, incident response, and load tests. No V8 milestone substitutes for these.
@@ -48,3 +50,13 @@ Mainnet requires independent program/economic review, liquidity and MEV analysis
 These are package advisory matches, not demonstrated FLINCH exploit paths. Browser bundle reachability, native-binding activation, untrusted-input exposure and safe compatible upgrades still require review. The local native bigint binding was unavailable and tests used the JS implementation, but that observation is not a remediation or future deployment guarantee. Release remains blocked on this work and the other security gates.
 
 Source/generated-artifact scanning excludes dependency caches, build output and local validator evidence directories intentionally. Scan release bundles and deployment material separately; a passing selected-pattern scan does not certify those excluded surfaces.
+
+## Devnet preparation checks, 2026-09-11
+
+`bun audit --json` was rerun and still reports the same six package families. No vulnerabilities are claimed remediated. The installed bigint native binding still fails to load; the observed runtime uses the JS implementation. SPL Token's buffer-layout wrapper passes fixed-width decoded integer fields into bigint-buffer. Anchor's TOML parser is in the local workspace loader, not FLINCH's account/transaction decoding path. These are scoped reachability observations, not an exemption or a promise that a rebuilt deployment has identical dependency reachability.
+
+The isolated production trace lists Next's compiled image-size copy; that is not proof that the separately reported Metro dependency is used or that Next's compiled parser is safe. No untrusted image-upload route was added. Advisory remediation and release-bundle review remain open; production release is not approved by the devnet preparation.
+
+Dedicated private keys use owner-only files outside the repository. Key reads reject symlinks, non-private permissions, malformed keys and mismatched identities. Deployment uses an exclusive journal, an immutable staged binary and explicit program, fee-payer, buffer and upgrade-authority keys. Resume accepts only the expected upgradeable-loader buffer shape/authority and accounts for its already-funded rent. Signed test submissions are recorded before network send; a lost response cannot trigger a second submission under the same operation name. Tests cover these negative paths without public transactions.
+
+The source selected-pattern scan passed. An additional exact-key scan of 143 compiled production JS/JSON/HTML/map files found none of the eight prepared deployment/test key JSON arrays. This does not scan every encoding or certify dependency/build-cache/validator evidence. Only public result files may be attached to a submission; never attach the private deployment directory or a validator ledger.
