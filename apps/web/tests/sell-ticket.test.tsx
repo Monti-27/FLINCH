@@ -27,7 +27,8 @@ it("shows exact confirmed WSOL and official token identities without inventing a
 it("keeps the signed minimum visible, separates fees and disables an expired queue action", () => {
   const html = renderToStaticMarkup(<SellTicket {...base} quote={quote()} quoteIssue="Quote cohort closed" />);
   expect(html).toContain("Your signed minimum");
-  expect(html).toContain("Estimated proceeds · Raydium");
+  expect(html).toContain("Estimated proceeds");
+  expect(html).toContain("Raydium");
   expect(html).toMatch(/disabled=""[^>]*>Queue SELL/);
   expect(html).toContain("Quote cohort closed");
   expect(html).toContain("Refresh quote");

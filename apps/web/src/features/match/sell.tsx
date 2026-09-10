@@ -9,6 +9,7 @@ import { SellTicket } from "./sell-ticket.tsx";
 import { sellRequest } from "./sell-request.ts";
 import { sellState } from "./sell-state.ts";
 import { notifyActionError } from "../../lib/notify-action.ts";
+import styles from "./sell-ticket.module.css";
 
 export function Sell({ client, room, control, controlNow = room.now, seat, wallet, session, busy, enabled, wallTime, run }: { client: FlinchClient;
   room: BaseRoom; control?: Control; seat: number; wallet?: TransactionSigner; session?: Session; busy: boolean; enabled: boolean;
@@ -33,7 +34,7 @@ export function Sell({ client, room, control, controlNow = room.now, seat, walle
     } catch (value) { notifyActionError(value, { action: "Queue SELL" }); }
   };
   return <section className="panel sell-panel" aria-labelledby="sell-title">
-    <div className="panel-heading">
+    <div className={styles.header}>
       <h2 id="sell-title">{ended ? "Round complete" : exited ? "Exit confirmed" : pending ? "Sell queued" : "Your position"}</h2>
       {active && wallet && <span className="caption">{sessionReady ? "Signing with session key" : "Signing with wallet approval"}</span>}
     </div>
@@ -41,9 +42,8 @@ export function Sell({ client, room, control, controlNow = room.now, seat, walle
       quote={quote} fresh={fresh} quoteIssue={quoteIssue} sessionReady={!!sessionReady} loading={loading} busy={busy}
       canQuote={available && !!wallet} canQueue={available && enabled && !!wallet}
       onQuote={() => void getQuote()} onQueue={() => void queue()} />}
-    {active && <p className="muted">Sell and share up to 0.25% with the remaining holders. All holders sell together? No game penalty.</p>}
-    {unavailable && <p className="muted">{unavailable}</p>}
-    {!sessionReady && wallet && active && <p className="muted">Wallet approval must finish before the quote expires. Refresh never signs.</p>}
-    {active && <p className="caption">Queued is not sold. The Solana swap confirms your exit.</p>}
+    {unavailable && <p className={styles.state}>{unavailable}</p>}
+    {!sessionReady && wallet && active && <p className={styles.note}>Wallet approval must finish before the quote expires. Refresh never signs.</p>}
+    {active && <p className={styles.note}>Queued is not sold. The Solana swap confirms your exit.</p>}
   </section>;
 }

@@ -2,7 +2,12 @@
 .heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: var(--text-small); color: var(--foreground); }
 .heading > span:last-child:not(:first-child) { color: var(--muted-foreground); }
 .row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--space-3); min-height: 64px; margin-top: var(--space-2); }
+.row[data-stacked="true"] { grid-template-columns: minmax(0, 1fr); padding-bottom: var(--space-2); }
+.row[data-stacked="true"] .token { justify-self: start; }
 .token { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: var(--space-2) var(--space-3); border: 1px solid var(--line-strong); border-radius: 24px; background: var(--card); color: var(--foreground); font-size: var(--text-small); font-weight: 500; }
 .amount { min-width: 0; text-align: right; font: 500 clamp(24px, 12cqi, 38px)/1.2 var(--font-display); letter-spacing: -.045em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .amount[data-precise="true"] { font-size: clamp(16px, 6.4cqi, 22px); letter-spacing: -.03em; }
 .amount > span { max-width: 100%; }
+@media (min-width: 1101px) and (max-height: 950px) {
+  :global(.room-controls) .row { min-height: 40px; margin-top: var(--space-1); }
+}

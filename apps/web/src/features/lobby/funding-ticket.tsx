@@ -18,7 +18,7 @@ export function FundingTicket({ stake, joined, seat, occupied, expired, disabled
       <p>{expired ? "The funding window has ended." : joined ? waiting : "Four equal stakes. One 90-second standoff."}</p>
     </header>
     <AssetTicket label={joined ? "Your stake" : "Stake per player"} detail={joined ? "Deposited" : "Equal for all four"}
-      symbol={joined ? "WSOL" : "SOL"} amount={amount} precise={amount.length > 7}>
+      symbol={joined ? "WSOL" : "SOL"} amount={amount} precise={amount.length > 7} stacked={amount.length > 13}>
       <dl className={styles.facts}><div><dt>{joined ? "Your seat" : "Open seats"}</dt><dd>{joined ? `Player ${seat + 1}` : `${4 - occupied} of 4`}</dd></div>
         <div><dt>{joined ? "Players joined" : "Sell penalty"}</dt><dd>{joined ? `${occupied} of 4` : "Up to 0.25%"}</dd></div></dl>
     </AssetTicket>
