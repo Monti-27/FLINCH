@@ -31,7 +31,7 @@ export async function startStack(options: { baseTransport?: (upstream: string, d
   const genesis = [USDC, pool.pool, pool.ammConfig, pool.observation, pool.poolWsolVault, pool.poolUsdcVault];
   const args = [resolve("node_modules/@magicblock-labs/ephemeral-validator/mbStack.js"),
     "--ledger", resolve(directory, "ledger"), "--mint", host.publicKey.toBase58(), "--faucet-port", String(ports.faucet),
-    "--bind-address", "127.0.0.1", "--dynamic-port-range", ports.dynamic,
+    "--bind-address", "127.0.0.1", "--dynamic-port-range", ports.dynamic, "--gossip-port", String(ports.faucet + 1),
     "--bpf-program", PROGRAM_ID.toBase58(), programBinary,
     "--bpf-program", RAYDIUM_ID.toBase58(), raydiumBinary];
   for (const key of genesis) {

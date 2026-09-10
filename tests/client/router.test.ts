@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Keypair } from "@solana/web3.js";
 import { DevnetRouter } from "../../packages/client/src/routing/router.ts";
-import { PROGRAM_ID } from "../../packages/client/src/program.ts";
+import { DEVNET_PROGRAM_ID as PROGRAM_ID } from "../../packages/client/src/program.ts";
 import type { RpcRequest } from "../../packages/client/src/routing/rpc.ts";
 
 const control = Keypair.generate().publicKey;

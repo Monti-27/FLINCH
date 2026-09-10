@@ -13,12 +13,13 @@ export class RoomCatalog {
   private readonly pinned: Set<string>;
 
   constructor(rooms: readonly PublicKey[], privateClient: Pick<FlinchClient, "base" | "readRoom" | "config" | "programId">, scope: RoomDiscovery,
-    store: OperationStore, onError: (error: unknown) => void, discover = discoverRooms) {
+    store: OperationStore, onError: (error: unknown) => void,
+    options: { discover?: typeof discoverRooms; pinned?: readonly PublicKey[] } = {}) {
     if (rooms.length > 128) throw new Error("Too many rooms to resume safely");
-    this.pinned = new Set(rooms.map(room => room.toBase58()));
+    this.pinned = new Set((options.pinned ?? rooms).map(room => room.toBase58()));
     rooms.forEach(room => this.active.set(room.toBase58(), room));
     this.refresh = async () => {
-      const discovered = await discover(privateClient.base, scope, privateClient.programId);
+      const discovered = await (options.discover ?? discoverRooms)(privateClient.base, scope, privateClient.programId);
       for (const address of discovered) {
         if (this.stopped) break;
         if (this.active.has(address.toBase58())) continue;

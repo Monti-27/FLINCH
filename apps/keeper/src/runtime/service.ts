@@ -55,7 +55,7 @@ export async function runKeeper(config: KeeperConfig, execute: boolean, report: 
     const signer = await loadSigner(config.keypairFile, config.payer);
     const previous = new Map<string, string>();
     const catalog = config.discovery ? new RoomCatalog(initialRooms, client, config.discovery, store,
-      error => report({ event: "discovery_error", code: errorCode(error) })) : undefined;
+      error => report({ event: "discovery_error", code: errorCode(error) }), { pinned: config.rooms }) : undefined;
     const publish = (room: string, event: RuntimeEvent) => {
       const serialized = JSON.stringify(event);
       if (previous.get(room) !== serialized) { report(event); previous.set(room, serialized); }
