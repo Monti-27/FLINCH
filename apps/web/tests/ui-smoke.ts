@@ -51,14 +51,14 @@ try {
   await expect(page.locator('[data-sonner-toast][data-type="warning"]').filter({ hasText: "Check the room link" })).toBeVisible();
   await expect(page.getByLabel("Room address or invite link", { exact: true })).toBeFocused();
   await page.getByRole("button", { name: "How to play", exact: true }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Close rules", exact: true })).toBeFocused();
+  await expect(page.locator("#navigation-rules")).toHaveCSS("opacity", "1");
+  await expect(page.getByRole("button", { name: "How to play", exact: true })).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(page.getByRole("button", { name: "Got it", exact: true })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Protocol", exact: true })).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Close rules", exact: true })).toBeFocused();
+  await expect(page.getByRole("button", { name: "How to play", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(page.locator("#navigation-rules")).toHaveAttribute("inert", "");
   await expect(page.getByRole("button", { name: "How to play", exact: true })).toBeFocused();
   await page.getByRole("combobox", { name: "Chart style", exact: true }).selectOption("candles");
   await page.getByRole("button", { name: "1m", exact: true }).click();
@@ -66,9 +66,10 @@ try {
   await expect(page.getByText("Live reference", { exact: true })).toBeVisible({ timeout: 20_000 });
   const layout = await checkLayout(page, directory);
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.getByRole("button", { name: "Open menu", exact: true }).click();
   await page.getByRole("button", { name: "How to play", exact: true }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  assert.equal(await page.getByRole("dialog").evaluate(element => getComputedStyle(element).animationName), "none");
+  await expect(page.locator("#navigation-rules")).toHaveCSS("opacity", "1");
+  await expect(page.locator("#navigation-rules")).toHaveCSS("transform", "none");
   await page.keyboard.press("Escape");
   await page.context().setOffline(true);
   await expect(page.getByText("Offline. New transactions are paused. Submitted transactions may still complete.")).toBeVisible();
@@ -80,7 +81,7 @@ try {
   await page.getByRole("button", { name: "Have a room code?", exact: true }).click();
   await expect(page.getByRole("button", { name: "Open room", exact: true })).toBeEnabled();
   assert.deepEqual(errors, []);
-  writeFileSync(resolve(directory, "result.json"), JSON.stringify({ complete: true, readOnly: true, liveCoinbaseFeed: true, layout, playerRail, chrome, components, brand, ecosystem, footerMotion, chartInteraction, chartControls: true, dialogKeyboard: true, offlineRecovery: true, explicitFeedOutage: true, pageErrors: errors }, null, 2));
+  writeFileSync(resolve(directory, "result.json"), JSON.stringify({ complete: true, readOnly: true, liveCoinbaseFeed: true, layout, playerRail, chrome, components, brand, ecosystem, footerMotion, chartInteraction, chartControls: true, rulesNavigationKeyboard: true, offlineRecovery: true, explicitFeedOutage: true, pageErrors: errors }, null, 2));
   console.log(`UI smoke passed: ${directory}`);
 } catch (error) {
   await page.screenshot({ path: resolve(directory, "failure.png"), fullPage: true });

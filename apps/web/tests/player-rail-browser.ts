@@ -53,9 +53,9 @@ export async function checkPlayerRail(page: Page, browser: Browser, url: string,
   await settlePlayerRail(page, false);
   await trigger.click();
   await page.getByRole("button", { name: "How the round works" }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.locator("#navigation-rules")).toHaveAttribute("data-open", "true");
   await page.keyboard.press("Escape");
-  await expect(trigger).toBeFocused();
+  await expect(page.getByRole("button", { name: "Open menu", exact: true })).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(rail).toHaveAttribute("data-motion", "reduced");
   await trigger.click();

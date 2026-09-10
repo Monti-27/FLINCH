@@ -53,7 +53,7 @@ export async function checkChrome(page: Page, directory: string) {
     const bounds = await footer.boundingBox();
     const artwork = await footer.locator(".footer-scene").boundingBox();
     assert(bounds && artwork);
-    assert(bounds.height <= 760, "Footer should preserve its intended proportions");
+    assert(bounds.height <= 400, "Arena footer should stay compact");
     assert.equal(bounds.x, 0, "Footer must reach the viewport edge");
     assert.equal(bounds.width, width, "Footer must fill the viewport");
     await expect(footer).toHaveCSS("border-width", "0px");
@@ -72,7 +72,7 @@ export async function checkChrome(page: Page, directory: string) {
     await footer.screenshot({ path: resolve(directory, `footer-${width}.png`) });
     const details = footer.locator("summary");
     await details.click();
-    await expect(footer.getByText("Preview only. Gameplay is not deployed yet.", { exact: true })).toBeVisible();
+    await expect(footer.getByText("Read-only preview. Transactions are disabled.", { exact: true })).toBeVisible();
     await details.click();
     const rules = footer.getByRole("button", { name: "Read the rules", exact: true });
     await rules.focus();
@@ -82,9 +82,10 @@ export async function checkChrome(page: Page, directory: string) {
     await expect(rules).toBeFocused();
     await expect(rules).toHaveCSS("outline-style", "solid");
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("dialog", { name: "How to play" })).toBeVisible();
+    await expect(page.locator("#navigation-rules")).toHaveAttribute("data-open", "true");
+    await expect(page.getByRole("dialog", { name: "How to play" })).toHaveCount(0);
     await page.keyboard.press("Escape");
-    await expect(footer.getByRole("button", { name: "Read the rules", exact: true })).toBeFocused();
+    await expect(width <= 1100 ? page.getByRole("button", { name: "Open menu", exact: true }) : navigation.getByRole("button", { name: "How to play", exact: true })).toBeFocused();
     await footer.getByRole("button", { name: "Back to arena", exact: true }).click();
     await expect(page.locator("#arena")).toBeFocused();
   }
