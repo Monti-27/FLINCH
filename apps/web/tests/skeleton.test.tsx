@@ -38,6 +38,9 @@ it("reserves all four seats and action geometry without inventing room state", (
   const action = renderToStaticMarkup(<ActionSkeleton room />);
   expect(action).toContain("Reading room and its Solana balances");
   expect(action).not.toContain("<button");
+  expect(action).toContain("room-controls");
+  expect(action).not.toContain("entry-header");
+  expect(action).not.toContain("Your stake is deposited when you join.");
 });
 
 it("uses chart plot and axis placeholders without fabricated prices or candles", () => {

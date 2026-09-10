@@ -1,5 +1,9 @@
 # Stake control
 
+## Latest refinement
+
+The subsequent approved reference-led panel and post-join/withdrawal refinements are documented in [CONTROL_PANEL.md](CONTROL_PANEL.md). They replace the earlier centered stake layout below with a token pill on the left, a right-aligned amount, one Max preset, centered actions and expandable terms. The exact-input and arithmetic contract remains unchanged. The sections below retain the earlier implementation history and evidence.
+
 ## Direction, 2026-09-11
 
 The user supplied `skiper22.mp4` and a screenshot of the existing lobby, requesting better alignment, token entry, increase/decrease controls and rolling numbers. The recording was decoded into 464 frames over 9.15 seconds. Contact sheets covering the whole recording are retained in `artifacts/runs/stake-control-5gNCIA`. No protected Skiper implementation was copied.

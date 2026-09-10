@@ -64,7 +64,7 @@ Native disclosure chevrons use 150ms CSS feedback and become instant under reduc
 
 `components/shell/room-invite.tsx` and its CSS module own the invite utility and clipboard-denial field. `stores/room-invite-store.ts` owns room-scoped asynchronous feedback, duplicate-click protection, bounded clipboard waiting and stale-result invalidation. `lib/room-link.ts` validates public room addresses, builds clean `/play` links and parses same-origin links without carrying unrelated URL fields. The join form accepts both links and addresses. These modules never sign, fund, queue a SELL or claim a seat.
 
-The invite control uses a fixed-size 150ms icon/label transition, instant under reduced motion. Keyboard users receive a selected manual field on clipboard denial and focus return on Escape. Narrow screens keep the invite label and an accessible icon-only transaction check. Old accepted-intent notifications now report a historical event, not a current assertion that WSOL remains unsold; the live position and base Ledger remain authoritative.
+The invite control uses a fixed-size 150ms icon/label transition, instant under reduced motion. Keyboard users receive a selected manual field on clipboard denial and focus return on Escape. `room-navigation.tsx` keeps Lobby left and invite/check grouped right with visible 44px button faces and focus clearance. Narrow screens retain Invite and Check text. Pending checks reserve their width and reject duplicate clicks without changing reconciliation. See NAVIGATION for the utility-bar follow-up. Old accepted-intent notifications report a historical event, not a current assertion that WSOL remains unsold; the live position and base Ledger remain authoritative.
 
 Interactive local gameplay is available while `bun run local --execute-local` runs on port 3400. Port 3000 remains the read-only preview. See LOCAL_PLAY for synthetic funding, room watch, shutdown, new-genesis semantics and the still-unverified extension-wallet boundary.
 
@@ -203,5 +203,7 @@ SELL presents an estimate range, maximum game penalty, immutable positive minimu
 The Coinbase reference chart is implemented; verified MagicBlock oracle display remains unimplemented. No fake price or fallback fill is displayed. Full fee/rent estimation before every wallet approval, hosted-service error translation and stronger cross-tab/reconnect testing remain improvements before release.
 
 ## Frontend verification
+
+The current entry, joined-room, SELL, refund and completed-state presentation contract is documented in [CONTROL_PANEL.md](CONTROL_PANEL.md), including isolated state fixtures, responsive checks and the limits of frontend-only verification.
 
 Run `bun run --cwd apps/web test`, `bun run --cwd apps/web typecheck` and `bun run --cwd apps/web build`. Serve the production build with `bun run --cwd apps/web start`, then run `bun run test:browser:ui` with an existing Chromium executable when required. The UI smoke uses the actual public feed and an explicitly injected outage, so successful live-feed checks require Coinbase connectivity. `bun run test:browser:stack` separately validates wallet/session/game transactions against local validators. See [retained evidence and limits](TESTING.md).

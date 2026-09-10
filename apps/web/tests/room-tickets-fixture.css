@@ -1,0 +1,12 @@
+:root { --font-manrope: "Manrope Variable"; --font-space-grotesk: "Space Grotesk Variable"; }
+.ticket-fixture { padding: 24px; }
+.ticket-fixture > header { margin-bottom: 16px; }
+.ticket-fixture > header p { margin: 8px 0 0; color: var(--muted-foreground); }
+.ticket-fixture nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.ticket-fixture nav button { min-height: 44px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--card); color: var(--foreground); padding: 8px 12px; }
+.ticket-fixture nav button[aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+.fixture-workspace { display: grid; grid-template-columns: 360px minmax(0, 1fr); align-items: stretch; gap: 20px; }
+.fixture-chart { min-height: 480px; border: 1px solid var(--line); border-radius: 20px; padding: 24px; color: var(--muted-foreground); }
+.ticket-fixture output { display: block; margin-top: 24px; }
+@media(max-width:900px) { .fixture-workspace { grid-template-columns: minmax(0, 1fr); } .fixture-chart { display: none; } }
+@media(max-width:600px) { .ticket-fixture { padding: 16px; } }

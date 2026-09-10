@@ -7,6 +7,8 @@ import timer from "../../features/match/round-timer.module.css";
 import styles from "./arena-skeleton.module.css";
 import { StakeSkeleton } from "../../features/lobby/stake-skeleton.tsx";
 import terms from "../../features/lobby/round-terms.module.css";
+import asset from "../ui/asset-ticket.module.css";
+import funding from "../../features/lobby/funding.module.css";
 
 export function OverviewSkeleton() {
   return <SkeletonGroup label="Loading round overview" className={`standoff ${overview.bar}`}>
@@ -32,7 +34,8 @@ export function PlayersSkeleton() {
 }
 
 export function ActionSkeleton({ room = false }: { room?: boolean }) {
-  return <SkeletonGroup label={room ? "Reading room and its Solana balances" : "Loading room entry"} className={`room-entry ${styles.action}`}>
+  if (room) return <RoomActionSkeleton />;
+  return <SkeletonGroup label="Loading room entry" className={`room-entry ${styles.action}`}>
     <div className="lobby-section" aria-hidden="true">
       <div className="entry-header"><div className={styles.entryHeader}><Skeleton width="46%" height="40px" /><Skeleton width="46%" height="40px" /></div></div>
       <div className="create-room">
@@ -41,6 +44,22 @@ export function ActionSkeleton({ room = false }: { room?: boolean }) {
         <div className="entry-footer"><p className="field-help">Your stake is deposited when you join.</p><Skeleton height="48px" className={styles.actionButton} /></div>
         <div className={`availability ${styles.availability}`}><Skeleton width="176px" height="14px" /></div>
       </div>
+    </div>
+  </SkeletonGroup>;
+}
+
+function RoomActionSkeleton() {
+  return <SkeletonGroup label="Reading room and its Solana balances" className={`room-controls ${styles.roomAction}`}>
+    <div aria-hidden="true">
+      <div className={funding.header}><Skeleton width="190px" height="28px" /><Skeleton width="160px" height="19px" /></div>
+      <div className={asset.ticket}>
+        <div className={asset.heading}><Skeleton width="96px" height="18px" /><Skeleton width="76px" height="18px" /></div>
+        <div className={asset.row}><Skeleton width="86px" height="40px" round /><div className={asset.amount}><Skeleton width="104px" height="40px" /></div></div>
+        <div className={funding.facts}>{[0, 1].map(index => <div key={index}><Skeleton width="80px" height="18px" /><Skeleton width="52px" height="18px" /></div>)}</div>
+      </div>
+      <div className={funding.note}><Skeleton width="88%" height="18px" /></div>
+      <div className={funding.operations}><Skeleton height="48px" className={styles.actionButton} /></div>
+      <div className={funding.management}><Skeleton height="48px" className={styles.actionButton} /></div>
     </div>
   </SkeletonGroup>;
 }

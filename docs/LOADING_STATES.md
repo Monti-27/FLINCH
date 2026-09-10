@@ -2,6 +2,8 @@
 
 ## Scope
 
+The later reference-led control-panel pass adapts the entry and initial-room placeholders to the new geometry. Room reads use a header, inset asset row, metadata and action shapes rather than the editable lobby slider. See [CONTROL_PANEL.md](CONTROL_PANEL.md) for the current state contract and newer browser evidence. The loading boundaries and no-fabrication rules below remain unchanged.
+
 The 2026-09-11 skeleton pass covers `/play` startup, initial room reads, reference-chart code and history, reference price, quote reserve reads and confirmed receipt reads. It does not change signing, token amounts, settlement, custody or network routing. Existing landing, footer, stake-control and timer work is preserved.
 
 `components/ui/skeleton` owns decorative shapes and named busy regions. Its 2.2-second transform-only highlight sweeps left to right with a short quiet interval. Existing palette tokens supply the surface and highlight. Reduced motion disables the sweep, including when the preference changes while loading. No extra animation dependency or minimum loading duration is added.
