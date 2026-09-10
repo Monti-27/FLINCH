@@ -14,6 +14,7 @@ export async function checkBentoMotion(page: Page, directory: string) {
   await page.mouse.move(0, 0);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(section.locator('[data-running="true"]')).toHaveCount(0);
+  await expect.poll(phases).toEqual(["0", "0", "0", "0", "0"]);
   const offscreen = await phases();
   await page.waitForTimeout(600);
   assert.deepEqual(await phases(), offscreen);

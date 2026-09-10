@@ -9,7 +9,8 @@ describe("landing page", () => {
     const html = renderToStaticMarkup(<LandingPage />);
     const content = html.replace(/<[^>]*>/g, "");
     for (const text of ["Four players.", "Who flinches first?", "Test tokens only", "0.25%",
-      "acceptance alone is not a sale", "Multiple holders", "Public devnet gameplay is not deployed yet", "No real-money wagering"]) expect(content).toContain(text);
+      "acceptance alone is not a sale", "Multiple holders", "deployed on Solana Devnet", "No real-money wagering"]) expect(content).toContain(text);
+    expect(content).not.toContain("not deployed yet");
     expect(html).not.toContain("Illustrations, not live gameplay");
     expect(html).not.toContain("Connect wallet");
     expect(html).not.toContain("Loading FLINCH");
@@ -54,7 +55,7 @@ describe("landing page", () => {
     expect(html).not.toContain("The next move is yours");
     expect(html).not.toContain("Pause motion");
     expect(html.indexOf("</main>")).toBeLessThan(html.indexOf("<footer"));
-    expect(html.match(/data-bento-card=/g)).toHaveLength(5);
+    expect(html.match(/<article\b[^>]*\bdata-bento-card="/g)).toHaveLength(5);
     expect(html.match(/id="onchain"/g)).toHaveLength(1);
     expect(html.match(/id="how-it-works"/g)).toHaveLength(1);
     expect(html).not.toContain("data-story-chapter");
