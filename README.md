@@ -2,74 +2,189 @@
 
 Sell first. Pay the holders.
 
-Four players stake equal WSOL in a timed game of chicken. A successful seller pays a small WSOL penalty to the remaining holders and receives the actual USDC proceeds from a Solana swap. MagicBlock handles live sell intents; custody, swaps, and claims stay on Solana.
+A four-player game of chicken on Solana. Everyone puts in the same amount of wrapped SOL, and the round lasts 90 seconds. You can hold or sell. Selling swaps your WSOL for USDC, but a small cut of your WSOL goes to everyone still holding.
 
-## Status
+Hold longer and you collect those cuts. Sell and you leave with what the swap actually returned. If you're the last holder, you keep your WSOL and everything you've earned along the way. If several players are still holding when time runs out, they each keep their share. Nobody gets picked as a loser.
 
-The shared footer now uses the supplied video's actual ASCII hands, smooth inward entrances and a continuous color flow around a persistent Flinch × MagicBlock identity. See [reference provenance and motion](docs/FOOTER.md) and [validation](docs/TESTING.md).
+Built for MagicBlock Blitz V8, with live sell intents on an Ephemeral Rollup and real Raydium swaps on Solana.
 
-The landing page at `/` follows the latest video references: pale ruled sections, word-by-word reveals, a licensed mountain landscape, one animated five-card bento and native FAQ. The earlier rule-card grid is removed. The rollup illustration shows intent, batch and return while Solana custody stays fixed. Unknown routes show an interactive pixel garden with working home and arena links. The existing dark game is at `/play`; valid old `/?room=…` invitations still open it. The landing and 404 do not start wallet, RPC or market-feed providers. The landing reuses the shared full-width footer without adding another. See [landing direction and provenance](docs/LANDING_PAGE.md) and [validation evidence](docs/TESTING.md).
+Play on Devnet: [flinch-game.up.railway.app/play](https://flinch-game.up.railway.app/play). The frontend, signing keeper and PostgreSQL are running on Railway with transactions enabled. A four-wallet public-browser round completed three real swaps and four exact withdrawals. No local keeper is required. See [Railway hosting](docs/RAILWAY.md) for evidence, updates and operating limits.
 
-The real-sales protocol core is implemented in `programs/flinch-v2`, backed by a dependency-free Rust domain library. A real local MagicBlock stack has completed four deposits, two ER sell batches, control returns, actual Raydium swaps, and four claims. A second run also proved expiry without penalties followed by redelegation, retry, and claims. Neither run injected Control state.
+| | |
+| --- | --- |
+| Players | 4, with equal stakes |
+| Round | 90 seconds |
+| Starting stake | 0.001 WSOL by default |
+| Sell penalty | 0.25%, paid to the remaining holders |
+| Protocol fee | None; network and DEX fees are separate |
+| Status | Experimental devnet deployment; ten live rounds verified |
 
-The shared generated-IDL client and permissionless keeper are implemented in separate workspace packages. A standalone CLI now provides read-only inspection, explicitly enabled execution, owner-only key loading, a single-process journal lock and graceful restart. Local client/keeper runs have completed real swaps, expiry/retry, four claims and repeated worker reconstruction. Recovery does not wait for ER status or Control decoding. Unknown transactions are reconciled, not blindly re-signed. See [keeper operation and restart limits](docs/KEEPER_OPERATIONS.md).
+## How the game works
 
-Additional local fault tests now prove two independent keepers racing the same settlements without duplicate swaps, and revocation of a warm ER session followed by direct-wallet sales and all four claims. These checks retain failed transaction metadata and unchanged-state assertions, not just happy-path signatures. They do not establish hosted revocation timing or exhaustive race coverage; see TESTING for exact scope.
+1. Create a room and share its invite. Four different wallets join with equal WSOL stakes.
+2. Once all four deposits confirm, the round starts. Holding takes no action.
+3. To sell, review the pool quote, penalty and minimum USDC you'll accept, then submit your sell intent.
+4. Intents are grouped into two-second windows. Everyone selling in the same batch gets the same treatment; they don't collect penalties from each other.
+5. Each seller pays 0.25% of their current WSOL balance, including any holder bonuses they've earned. That penalty is split equally among holders outside the batch.
+6. The rest is swapped in one Raydium trade. Sellers share the actual USDC received in proportion to the WSOL they sold. If anyone's minimum isn't met, the whole transaction reverts, including the penalties.
+7. Sellers can claim their USDC after settlement. The last holder wins by staying in and can claim their remaining WSOL. That final holder can't sell through the game.
+8. If multiple holders remain at timeout, they keep their WSOL. If every remaining holder sells in the same batch, nobody pays a holder penalty and everyone exits into USDC.
 
-Delayed-commit tests also block actual ER-to-base commitment writes through expiry and hard recovery. Late fills reject, expiry charges no penalty, and recovery preserves earlier USDC proceeds plus holder WSOL even before Control returns. Four claims complete in both cases. The harness suite now has 18 tests; the default browser round and production UI regressions pass. No protocol or UI changes were needed for these fault scenarios. See TESTING for their exact scope and retained evidence.
+A queued sell isn't a completed sale. You're still exposed to WSOL until the swap confirms on Solana. The round clock keeps running while a batch returns from the rollup and settles; new intents pause during that handoff.
 
-Verified locally: 35 domain tests in debug/release, 23 executed runtime tests, 10 harness tests, 29 client tests, 28 keeper tests, 169 web unit tests, 18 legacy regressions and the replacement program-ID test. The full validation gate passed during the interactive sandbox work. Four independent browser wallets complete four UI deposits, three actual local Raydium swaps and all claims, including pasted room invites and keeper pause/resume. The separate critical browser scenario covers reload, session revocation, base/ER read outages and explicit quote expiry followed by deliberate refresh. Separate-process tests cover pending-execute restart and base recovery through an injected ER transport outage. See [validation evidence and limits](docs/TESTING.md), including retained layout failures, an unresolved historical intermittent preflight rejection and toolchain warnings.
+Failed or expired batches charge no game penalty, though network fees may still apply. If a round gets stuck, anyone can trigger recovery on Solana 30 seconds after the round ends. Unsold WSOL becomes claimable, and USDC from earlier successful sales stays yours.
 
-Executable integer quotes and a modular Next.js frontend are implemented. Quote output matches actual Raydium execution for both mint orientations and all creator-fee modes. Browser tests have completed room creation, session-backed funding, quoted SELL, reload, settlement, claims and base session revocation through a test Wallet Standard adapter signing real local transactions. Web transactions default off.
+All token amounts use integer arithmetic. The exact rounding, retry limits and timing rules are in [Game rules](docs/GAME_RULES.md).
 
-Settled positions now use one withdrawal ticket with full-precision token amounts, primary claim controls and expandable fee details. Scoped feedback blocks duplicate preparation and keeps uncertain transactions distinct from completed withdrawals. A real local browser claim remains usable during an injected MagicBlock read failure. See TESTING for the latest four-browser and production-UI evidence; this is not public devnet or ordinary-extension proof.
+## Why MagicBlock
 
-The frontend uses a Collect UI-inspired game table: four desktop player positions, a focused action column beside a bounded reference chart, contained exact-string amount entry, a paired WSOL/USDC sell ticket and pale indigo controls. Mobile puts actions before the chart. The user's exact palette, approved split F, self-hosted Space Grotesk/Manrope, official ecosystem icons and full-width Waves footer remain; the footer is unchanged. Compact player disclosure uses explicit touch/keyboard controls; empty-seat clicks focus entry without submitting. Scoped Zustand and a single Sonner host remain. KLineCharts 10.0.3 supplies native candles, observed volume and fullscreen in an action-aligned layout; see [chart integration](docs/CHART.md). Coinbase SOL/USD is reference-only; executable SELL estimates still come from Raydium. Read the [design study](docs/UI_DESIGN.md) and [frontend architecture](docs/FRONTEND.md) for sources, validation and limits.
+The shared part of FLINCH is watching the other players and deciding when to leave. MagicBlock handles those live sell intents, and Session Keys let players submit them without approving a new wallet popup each time.
 
-No hosted keeper service, funded devnet pool, public FLINCH deployment, or ten-round devnet proof exists yet. Local liquidity and mint state are synthetic. Dependency advisories and remaining fault tests block release. The legacy `programs/flinch` is preserved separately and must not be deployed as real-sales FLINCH. This is not a production-ready release.
+Only the room's control account goes to the Ephemeral Rollup. The WSOL, USDC and record of what each player owns stay on Solana. At the end of a batch, control returns to Solana, the program makes the Raydium swap, and the updated control account can be delegated again.
 
-## Start here
+This doesn't make a DEX trade instant. It separates the live game interaction from the actual exchange of tokens. There's no VRF draw: who holds and who sells decides the outcome.
 
-The approved split F is integrated as a shared SVG across the site, with matching browser and Apple touch icons. Read [brand.md](brand.md) for canonical geometry, responsive placement and asset-generation instructions.
+## Architecture
 
-1. [Execution plan](docs/BUILD_PLAN.md)
-2. [Decisions and defaults](docs/DECISIONS.md)
-3. [Game rules](docs/GAME_RULES.md)
-4. [Architecture](docs/ARCHITECTURE.md)
-5. [MagicBlock and SDK integration](docs/MAGICBLOCK.md)
-6. [Program boundary](docs/PROGRAM.md)
-7. [Validation gates](docs/TESTING.md)
-8. [Current handoff](docs/LLM_HANDOFF.md)
+```mermaid
+flowchart LR
+    UI["Next.js client"] -->|"deposit and claim"| GAME
+    UI -->|"wallet or session sell intent"| ER["MagicBlock Ephemeral Rollup"]
+    ROUTER["Magic Router"] -.->|"resolve the room's active rollup"| UI
+    KEEPER["Permissionless keeper"] -->|"freeze batch"| ER
+    KEEPER -->|"settle, expire, recover"| GAME
 
-Historical docs are preserved in [docs/legacy](docs/legacy/README.md). Research HTML and report-source.md predate this migration and are not implementation specifications.
+    subgraph BASE["Solana base layer"]
+        GAME["FLINCH ledger and token vaults"] -->|"swap WSOL"| DEX["Raydium CPMM"]
+        DEX -->|"actual USDC proceeds"| GAME
+    end
 
-## Structure
-
-```text
-crates/flinch-domain/     pure accounting, batches, timing, ledger tests
-programs/flinch-v2/       replacement custody, control, sessions and Raydium CPI
-programs/flinch/          legacy Anchor program pending migration
-idls/                    reviewed Raydium interface and provenance
-tests/local/             in-process SBF authorization and token-flow tests
-tests/stack/             real local base/ER handoffs, swaps, expiry and claims
-packages/client/         generated-IDL builders, routing, exact units and observations
-apps/keeper/             decisions, reconciliation, durable journal and bounded workers
-apps/web/                lobby, wallet/session lifecycle, match, claims and receipt proof
-docs/                    current contracts and implementation gates
-docs/legacy/             superseded specifications, preserved for reference
-scripts/                 bounded validation entrypoints
+    GAME -->|"delegate updated control"| ER
+    ER -->|"commit and undelegate control"| GAME
 ```
 
-See the [client and keeper contract](docs/CLIENT_KEEPER.md) for runtime separation and storage limits, [quotes](docs/QUOTES.md) for executable estimates and [frontend](docs/FRONTEND.md) for browser setup. Local liquidity fixtures never enter application packages.
+**Solana base layer** holds the stakes, player balances and settlement receipts. The FLINCH program checks the returned batch, swaps through the room's fixed Raydium pool, and records the result in one transaction. Claims go to the player's own token accounts.
 
-## Verify
+**Ephemeral Rollup** holds the delegated control account: who's in the room, the current revision and authenticated sell intents. It freezes a complete batch and returns control to Solana. It doesn't hold the tokens or decide how much USDC a sale earned.
 
-Run `bun install --frozen-lockfile --ignore-scripts`, then `bash scripts/fetch-raydium.sh` for the hash-checked read-only devnet binary download. Run `bash scripts/verify-v2.sh` for the local build and tests. Run `bun run test:stack` and `bun run test:stack:expiry` separately for real local base/ER cycles. See [toolchain and evidence instructions](docs/TESTING.md) before running the stack.
+**Keeper** moves the round forward. It starts funded rooms, freezes batches, waits for confirmed control return, submits swaps, expires missed batches and triggers recovery. Anyone can perform these lifecycle actions. The keeper can't change a player's minimum, redirect a claim or choose a different pool.
 
-Devnet WSOL and Circle USDC have no monetary value. Test-pool quotes are not mainnet SOL/USD prices. Mainnet, Git initialization, publication, liquidity funding, and deployment remain separately authorized actions.
+**Frontend** handles room invites, wallets, sessions, quotes and claims. It uses the same client package as the keeper to resolve the active rollup and read confirmed state. Its SOL/USD chart is Coinbase reference data, not an executable Raydium quote or a verified MagicBlock oracle feed.
 
-Run `bun run web` for the read-only browser preview. Run `bun run test:stack:quotes` and `bun run test:stack:quotes:expiry` separately for quote-backed local rounds. `bun run test:browser:stack` runs the full local browser scenario; see TESTING for the required local validator PATH and browser executable.
+### What runs where
 
-Run `bun run test:browser:ui` against `/play` on the loopback preview for chart controls, native dialog keyboard behavior, reduced motion, offline recovery and explicit feed-outage coverage. Run `bun run test:browser:landing` for the landing's responsive, scroll, contrast, keyboard, no-JavaScript and route checks.
+| Action | Runs on |
+| --- | --- |
+| Create a room and deposit WSOL | Solana |
+| Start the round and delegate control | Solana |
+| Submit a sell intent | Resolved rollup, signed by wallet or session |
+| Freeze a batch and request control return | Rollup, commits and undelegates to Solana |
+| Execute the Raydium swap or expire the batch | Solana, after confirmed control return |
+| Refresh and redelegate control | Solana |
+| Recover a stuck round and claim tokens | Solana; no rollup response needed at the recovery cutoff |
 
-For an explicitly enabled local test world, use `bun run local --execute-local` with the prerequisites in [LOCAL_PLAY](docs/LOCAL_PLAY.md). It runs gameplay on port 3400 with manual public-wallet funding and room watching. Each launch creates a new local genesis; ordinary extension-wallet support remains unverified. `bun run test:browser:local` exercises four separate browser wallets through deposits, three sales and all claims.
+The full account model and handoff checks are in [Architecture](docs/ARCHITECTURE.md). SDK and routing details are in [MagicBlock integration](docs/MAGICBLOCK.md).
+
+## What keeps it fair
+
+- Everyone stakes the same amount. The room's rules and Raydium pool are fixed before funding.
+- Sellers in one batch don't earn each other's penalties. Remaining holders split the penalty equally, with deterministic rounding for leftover token units.
+- Every sell carries an increasing nonce and a minimum USDC output. Old or replayed requests can't become a second sale.
+- The program checks actual token movements after the swap. A chart price, keeper report or rollup signature isn't proof of payment.
+- A session can only authorize sell intents for its room. It can't fund a position or claim tokens.
+- Deadlines come from the onchain clock. A late batch can't reopen a recovered round.
+- Recovery keeps earlier successful sales intact. Claims don't depend on the rollup, the chart or a running keeper.
+
+This is an experimental test-token game, not a production release. Devnet tokens have no monetary value, and test-pool prices aren't mainnet SOL/USD prices. See [Security](docs/SECURITY.md) for trust boundaries and known release blockers.
+
+## Repo layout
+
+```text
+crates/flinch-domain/  pure Rust accounting, penalties and batch rules
+programs/flinch-v2/    current Anchor program: custody, control, sessions and swaps
+packages/client/      shared transaction builders, quotes and runtime routing
+apps/keeper/          round lifecycle, reconciliation and restart journal
+apps/web/             Next.js landing page, arena, wallets and claims
+idls/                 reviewed Raydium interface and provenance
+tests/                runtime, client, keeper and local full-cycle tests
+scripts/              builds and validation entrypoints
+tools/                local sandbox and devnet tooling
+docs/                 rules, architecture, runbooks and test evidence
+```
+
+`programs/flinch/` and `docs/legacy/` preserve the earlier design. They aren't the real-sales implementation and shouldn't be used to deploy this version.
+
+## Running it
+
+Use Bun, Node, Rust, Anchor and the Solana tools listed in [Testing](docs/TESTING.md). The full local stack also needs the pinned MagicBlock validator and the documented Agave version on your `PATH`.
+
+### Browser preview
+
+```bash
+bun install --frozen-lockfile --ignore-scripts
+bun run web
+```
+
+Open [localhost:3000](http://localhost:3000) for the landing page, or [/play](http://localhost:3000/play) for the arena. This preview is read-only by default. It doesn't start a local chain or enable deposits, sells and claims.
+
+### Program and local protocol checks
+
+```bash
+bash scripts/fetch-raydium.sh
+bash scripts/verify-v2.sh
+bun run test:stack
+bun run test:stack:expiry
+```
+
+The first command downloads the hash-checked Raydium devnet binary; it doesn't deploy anything. The verification script builds and tests the local protocol. The stack scenarios then exercise funding, delegation, rollup intents, control return, actual Raydium swaps and claims against local validators. The expiry scenario covers a missed batch followed by retry.
+
+Run stack scenarios one at a time because they share ports. Follow [Testing](docs/TESTING.md) for toolchain setup, prerequisites and retained transaction evidence.
+
+### Four players in a local browser game
+
+After building the program and preparing the local prerequisites:
+
+```bash
+bun run local --execute-local
+```
+
+Wait for `ready`, then open [localhost:3400/play](http://127.0.0.1:3400/play). The launcher starts Solana, MagicBlock, Raydium test liquidity, a keeper and the frontend. Its terminal accepts `fund WALLET` for a public wallet address and `watch ROOM` for a room you've created. These operate only inside the synthetic local test world.
+
+Use disposable wallets that support the custom local chain. Ordinary extension-wallet support is still unverified, and switching a wallet to public devnet won't connect it to this sandbox. Every launch creates a fresh world; old balances and room links don't carry over. See [Local play](docs/LOCAL_PLAY.md) for the full walkthrough and shutdown instructions.
+
+### Frontend checks
+
+```bash
+bun run --cwd apps/web typecheck
+bun run --cwd apps/web test
+bun run --cwd apps/web build
+```
+
+Browser scenarios cover the landing page, arena interactions and four-wallet local rounds. Their commands and browser requirements are in [Testing](docs/TESTING.md).
+
+## Tests and current limits
+
+The recorded local runs cover the whole path from four deposits to rollup intents, control return, Raydium swaps and four wallet claims. They also cover expiry and retry, competing keepers, session revocation, delayed commitments and recovery during an ER outage. Browser runs use test wallets signing real local transactions, not simulated success screens.
+
+| Coverage | What it checks |
+| --- | --- |
+| Domain | Integer penalties, batch allocation, timing and token conservation |
+| Program runtime | Authorization, replay rejection, custody and transaction rollback |
+| Client and keeper | Routing, quotes, uncertain transactions and restart reconciliation |
+| Local stack | Base-to-rollup handoffs, swaps, expiry, recovery and claims |
+| Frontend | Amounts, wallet state, critical interactions and browser round trips |
+
+The local checks above use synthetic liquidity. V2 is also deployed on public devnet: ten consecutive rounds completed 20 actual Raydium swaps and 40 exact withdrawals through the existing WSOL/USDC pool. Both the locally served and public Railway frontend passed separate four-wallet browser rounds, each with three swaps and four withdrawals, session/wallet signing, reload, cancelled approvals and a claim during a client-side rollup outage. The Railway run retains its PostgreSQL journal, ten independently confirmed keeper transactions, three base returns and exact wallet balance changes. Its journal survived a container replacement. Ordinary extension wallets, warm-session revocation/expiry races, additional fault tests and dependency advisories remain outside this experimental demo's verified scope. See [Devnet operation](docs/DEVNET.md) for the deployed program, funding record, evidence and operating steps.
+
+Exact runs, signatures, balance snapshots and known failures live in [Testing](docs/TESTING.md). That record distinguishes completed checks from open gates.
+
+## Further reading
+
+- [Game rules](docs/GAME_RULES.md) and [chosen defaults](docs/DECISIONS.md)
+- [Architecture](docs/ARCHITECTURE.md) and [program contract](docs/PROGRAM.md)
+- [Quotes and minimum outputs](docs/QUOTES.md)
+- [Client and keeper](docs/CLIENT_KEEPER.md) and [keeper operations](docs/KEEPER_OPERATIONS.md)
+- [Frontend setup](docs/FRONTEND.md) and [brand assets](brand.md)
+- [Build plan](docs/BUILD_PLAN.md) and [current development handoff](docs/LLM_HANDOFF.md)
+- [MagicBlock Ephemeral Rollups](https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/ephemeral-rollup)
+- [Ephemeral Rollups SDK](https://github.com/magicblock-labs/ephemeral-rollups-sdk)
