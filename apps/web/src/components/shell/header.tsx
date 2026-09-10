@@ -12,7 +12,7 @@ export function Header({ config, home, inRoom }: { config: WebConfig; home: () =
   const setMobileOpen = useUi(state => state.setMobileNavigation);
   return (
     <header className="app-header">
-      <div className="header-brand"><button type="button" className="header-logo" onClick={home} aria-label="FLINCH home"><BrandLogo /></button>
+      <div className="header-brand"><a href="/" className="header-logo" aria-label="FLINCH home"><BrandLogo /></a>
         <span className="mobile-network">{config.network === "devnet" ? "Devnet" : "Localnet"}</span>
       </div>
       <Navigation home={home} inRoom={inRoom} />

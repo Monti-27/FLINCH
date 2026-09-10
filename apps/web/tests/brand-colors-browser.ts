@@ -24,7 +24,7 @@ try {
       await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
       const marks = page.locator(".brand-mark");
       assert(await marks.count() > 0);
-      const home = page.getByRole(route === "/play" ? "button" : "link", { name: "FLINCH home", exact: true });
+      const home = page.getByRole("link", { name: "FLINCH home", exact: true });
       const homeBounds = await home.boundingBox();
       assert(homeBounds && homeBounds.width >= 44 && homeBounds.height >= 44);
       const restingColor = await marks.first().evaluate(element => getComputedStyle(element).color);

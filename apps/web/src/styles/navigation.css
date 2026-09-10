@@ -1,6 +1,6 @@
 .app-header { display: flex; align-items: center; position: relative; z-index: 30; min-height: var(--header-height); padding: 0 var(--arena-gutter); gap: var(--space-6); border-bottom: 1px solid var(--line); background: var(--background); }
 .header-brand { flex: none; display: flex; flex-direction: column; }
-.app-header .header-logo { --brand-mark-size: 32px; display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; padding: 0; justify-content: flex-start; background: transparent; border: 0; border-radius: var(--chip-radius); color: var(--foreground); font-size: 26px; }
+.app-header .header-logo { --brand-mark-size: 32px; display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; padding: 0; justify-content: flex-start; background: transparent; border: 0; border-radius: var(--chip-radius); color: var(--foreground); font-size: 26px; text-decoration: none; }
 .app-header .header-logo:hover { background: transparent; }
 .header-actions { display: flex; align-items: center; margin-left: auto; gap: var(--space-3); }
 .network, .mobile-network { color: var(--muted-foreground); font: 500 var(--text-small) var(--font-mono); letter-spacing: .02em; }

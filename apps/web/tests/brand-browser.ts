@@ -11,7 +11,7 @@ export async function checkBrand(page: Page, directory: string) {
   for (const width of [320, 375, 480, 481, 600, 768, 1100, 1101, 1280, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => window.scrollTo(0, 0));
-    const home = page.getByRole("button", { name: "FLINCH home", exact: true });
+    const home = page.getByRole("link", { name: "FLINCH home", exact: true });
     await expect(home).toBeVisible();
     await expect(home.locator("svg")).toHaveAttribute("viewBox", BRAND_VIEW_BOX);
     await expect(home.locator("svg")).toHaveAttribute("aria-hidden", "true");
@@ -43,13 +43,17 @@ export async function checkBrand(page: Page, directory: string) {
   }
   await page.setViewportSize({ width: 375, height: 900 });
   await page.evaluate(() => window.scrollTo(0, 0));
-  const home = page.getByRole("button", { name: "FLINCH home", exact: true });
+  const home = page.getByRole("link", { name: "FLINCH home", exact: true });
   await home.focus();
   await page.keyboard.press("Tab");
   await page.keyboard.press("Shift+Tab");
   await expect(home).toBeFocused();
   await expect(home).toHaveCSS("outline-style", "solid");
   await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(new URL("/", page.url()).href);
+  await expect(page.locator("#landing-title")).toBeInViewport();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+  await page.getByRole("link", { name: "Open app", exact: true }).click();
   await expect(page.getByRole("button", { name: "Create room", exact: true })).toBeVisible();
 
   const icons = await page.locator('link[rel="icon"], link[rel="apple-touch-icon"]').evaluateAll(links => links.map(link => ({
@@ -91,7 +95,7 @@ export async function checkBrand(page: Page, directory: string) {
       await missing.screenshot({ path: resolve(directory, `brand-not-found-${width}.png`) });
     }
     await missing.getByRole("link", { name: "Back to arena", exact: true }).click();
-    await expect(missing.getByRole("button", { name: "FLINCH home", exact: true })).toBeVisible();
+    await expect(missing.getByRole("link", { name: "FLINCH home", exact: true })).toBeVisible();
     assert.deepEqual(missingErrors, []);
   } finally { await missing.close(); }
   await page.emulateMedia({ reducedMotion: "no-preference" });
