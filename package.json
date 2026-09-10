@@ -4,6 +4,11 @@
   "type": "module",
   "workspaces": ["packages/*", "apps/*"],
   "scripts": {
+    "railway:prepare": "node scripts/railway-release.mjs prepare",
+    "railway:deploy": "node scripts/railway-release.mjs all",
+    "railway:web": "node scripts/railway-release.mjs web",
+    "railway:keeper": "node scripts/railway-release.mjs keeper",
+    "railway:smoke": "node apps/web/tests/hosted-smoke.ts",
     "test:runtime": "node --test --test-concurrency=1 tests/local/*.test.ts",
     "test:harness": "node --test tests/harness/*.test.ts",
     "test:client": "node --test tests/client/*.test.ts",
@@ -49,6 +54,7 @@
     "@types/node": "24.10.1",
     "litesvm": "0.8.0",
     "postgres": "3.4.9",
+    "railway": "3.11.0",
     "typescript": "5.9.3"
   }
 }

@@ -9,6 +9,7 @@
     "brand:generate": "node ../../scripts/generate-brand-assets.mjs",
     "brand:check": "node ../../scripts/generate-brand-assets.mjs --check",
     "start": "next start --hostname 127.0.0.1 --port 3000",
+    "start:railway": "next start --hostname 0.0.0.0 --port ${PORT:-3000}",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
