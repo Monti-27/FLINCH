@@ -33,17 +33,24 @@ const approval = createApprovalGate();
 await browserWallet(page, stack.host, signature => { walletSignatures.push(signature); journal(stack.directory, "browser-signatures", { signature }); }, approval.beforeSign);
 const log = openSync(resolve(stack.directory, "web.log"), "a", 0o600);
 const webDirectory = resolve(process.env.FLINCH_TEST_WEB_DIR ?? "apps/web");
-const web = spawn(process.execPath, [resolve(webDirectory, "node_modules/next/dist/bin/next"), "dev", "--webpack", "--hostname", "127.0.0.1", "--port", "3300"], {
-  cwd: webDirectory, stdio: ["ignore", log, log], env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1",
+const environment = { ...process.env, NEXT_TELEMETRY_DISABLED: "1",
     NEXT_PUBLIC_FLINCH_NETWORK: "localnet", NEXT_PUBLIC_FLINCH_BASE_RPC: stack.base.rpcEndpoint,
     NEXT_PUBLIC_FLINCH_LOCAL_ER: stack.er.rpcEndpoint, NEXT_PUBLIC_FLINCH_GENESIS: await stack.base.getGenesisHash(),
     NEXT_PUBLIC_FLINCH_ENABLE_TRANSACTIONS: "true", NEXT_PUBLIC_FLINCH_POOL: stack.pool.pool.toBase58(),
-    NEXT_PUBLIC_FLINCH_VALIDATOR: (await stack.er.getClosestValidator()).identity }
-});
-closeSync(log);
+    NEXT_PUBLIC_FLINCH_VALIDATOR: (await stack.er.getClosestValidator()).identity };
+let web: ReturnType<typeof spawn> | undefined;
 console.log(`Browser evidence: ${stack.directory}`);
 let keeperService: Awaited<ReturnType<typeof startBrowserKeeper>> | undefined;
 try {
+  const production = process.env.FLINCH_TEST_WEB_MODE === "production";
+  const executable = resolve(webDirectory, "node_modules/next/dist/bin/next");
+  if (production) {
+    console.log("Building isolated production browser app");
+    const build = spawn(process.execPath, [executable, "build", "--webpack"], { cwd: webDirectory, stdio: ["ignore", log, log], env: environment });
+    await new Promise<void>((done, reject) => { build.once("error", reject); build.once("exit", code => code === 0 ? done() : reject(new Error("Browser production build failed"))); });
+  }
+  web = spawn(process.execPath, [executable, ...production ? ["start"] : ["dev", "--webpack"], "--hostname", "127.0.0.1", "--port", "3300"],
+    { cwd: webDirectory, stdio: ["ignore", log, log], env: environment });
   await poll("web startup", async () => (await fetch("http://127.0.0.1:3300", { signal: AbortSignal.timeout(1500) })).ok ? true : undefined, 60_000, true);
   await page.goto("http://127.0.0.1:3300/play");
   await page.getByRole("button", { name: "Connect wallet", exact: true }).click();
@@ -79,11 +86,13 @@ try {
   console.log("Browser started round");
   keeperService = await startBrowserKeeper(stack, ledger);
   await poll("browser room live", async () => { keeperService!.check(); const state = await client.readRoom(ledger); return state.control.kind === "delegated" ? true : undefined; });
-  await expect(page.getByRole("button", { name: "Get sell quote", exact: true })).toBeEnabled();
-  const startToast = page.locator('[data-sonner-toast]').filter({ hasText: "Round started" });
-  if (await startToast.isVisible()) {
-    await startToast.getByRole("button", { name: "Close toast", exact: true }).click();
-    await expect(startToast).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeEnabled();
+  for (const message of ["Round started", "Seat secured", "Room created"]) {
+    const notice = page.locator('[data-sonner-toast]').filter({ hasText: message });
+    if (await notice.isVisible()) {
+      await notice.getByRole("button", { name: "Close toast", exact: true }).click();
+      await expect(notice).not.toBeVisible();
+    }
   }
   await page.setViewportSize({ width: 1280, height: 1280 });
   await expect(page.locator(".roster-seat")).toHaveCount(4);
@@ -93,35 +102,47 @@ try {
   for (const width of [1280, 768, 375]) {
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.screenshot({ path: resolve(stack.directory, `active-${width}.png`), fullPage: true });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `Active room overflow at ${width}`);
-    const quoteButton = await page.getByRole("button", { name: "Get sell quote", exact: true }).boundingBox();
+    journal(stack.directory, "sell-layout", { width, button: await page.getByRole("button", { name: "Queue SELL · session key", exact: true }).boundingBox() });
+    await expect.poll(async () => {
+      const bounds = await page.getByRole("button", { name: "Queue SELL · session key", exact: true }).boundingBox();
+      return !!bounds && bounds.y + bounds.height <= 900;
+    }).toBe(true);
+    const quoteButton = await page.getByRole("button", { name: "Queue SELL · session key", exact: true }).boundingBox();
     assert(quoteButton && quoteButton.y + quoteButton.height <= 900, `SELL quote is below the first viewport at ${width}`);
-    assert(await page.getByRole("button", { name: "Get sell quote", exact: true }).evaluate(button => {
+    assert(await page.getByRole("button", { name: "Queue SELL · session key", exact: true }).evaluate(button => {
       const bounds = button.getBoundingClientRect();
       const hit = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
       return !!hit && button.contains(hit);
     }), `Another surface covers SELL at ${width}`);
+    await page.screenshot({ path: resolve(stack.directory, `active-${width}.png`), fullPage: true });
   }
   await page.setViewportSize({ width: 1280, height: 900 });
   const readRecovery = await checkRoomReadRecovery(page, stack.base.rpcEndpoint, stack.er.rpcEndpoint, stack.directory);
   const signaturesBeforeQuote = walletSignatures.length;
-  await page.getByRole("button", { name: "Get sell quote", exact: true }).click();
   await expect(page.getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeVisible();
-  await expect(page.getByText("Quote expired; refresh before signing", { exact: true })).toBeVisible({ timeout: 4000 });
-  await expect(page.getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeDisabled({ timeout: 4000 });
-  assert.equal(walletSignatures.length, signaturesBeforeQuote, "Reading and expiring a quote must never ask the wallet to sign");
-  assert.equal((await client.resolve(await client.readRoom(ledger))).control.sellers, 0, "An expired quote must not create an intent");
-  await page.screenshot({ path: resolve(stack.directory, "quote-expired.png"), fullPage: true });
-  await page.getByRole("button", { name: "Refresh quote", exact: true }).click();
+  await page.waitForTimeout(3000);
+  await expect(page.getByText("Quotes refresh automatically", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeEnabled();
+  assert.equal(walletSignatures.length, signaturesBeforeQuote, "Refreshing a quote must never ask the wallet to sign");
+  assert.equal((await client.resolve(await client.readRoom(ledger))).control.sellers, 0, "Automatic refresh must not create an intent");
+  await page.screenshot({ path: resolve(stack.directory, "quote-automatic.png"), fullPage: true });
   await page.getByRole("button", { name: "Queue SELL · session key", exact: true }).click();
   await poll("browser session intent", async () => {
     const state = await client.resolve(await client.readRoom(ledger));
     return state.control.sellers === 1 ? true : undefined;
   });
   console.log("Browser session queued SELL");
-  await expect(page.getByRole("heading", { name: "Sell queued", exact: true })).toBeVisible();
-  await page.screenshot({ path: resolve(stack.directory, "queued-desktop.png"), fullPage: true });
+  const sellProgress = page.getByRole("heading", { name: /^(Sell queued|Ready to withdraw)$/ });
+  await expect(sellProgress).toBeVisible();
+  const visibleSellState = await sellProgress.innerText();
+  if (visibleSellState === "Ready to withdraw") {
+    const confirmed = (await client.readRoom(ledger)).ledger.economics!;
+    assert.equal(confirmed.revision, 1n);
+    assert(confirmed.usdcClaims[0] > 0n, "A withdrawal must be backed by a confirmed base entitlement");
+  }
+  journal(stack.directory, "browser-sell-progress", { visibleSellState });
+  await page.screenshot({ path: resolve(stack.directory, "sell-submitted-desktop.png"), fullPage: true });
   const erSignature = await page.evaluate(() => Object.keys(localStorage).filter(key => key.startsWith("flinch:v2:"))
     .map(key => JSON.parse(localStorage.getItem(key)!)).find(op => op.runtime === "er")?.signature as string | undefined);
   assert(erSignature);
@@ -177,11 +198,11 @@ try {
   result(stack.directory, { complete: true, environment: "local browser and MagicBlock", syntheticLiquidity: true, controlInjected: false,
     wallet: "test Wallet Standard adapter signing real local transactions", keeper: "standalone process with independent fee payer", keeperPid: keeperService.pid,
     swaps: 2, claims: 4, browserReloads: 1, baseRevocationAfterReload: true, readRecovery, withdrawal, withdrawalOutage,
-    quoteExpiry: { disabledBeforeRefresh: true, noAutomaticSigning: true, noAutomaticIntent: true, deliberateRefresh: true }, ledger: ledger.toBase58() });
+    quoteRefresh: { automatic: true, noAutomaticSigning: true, noAutomaticIntent: true, freshOnSell: true }, ledger: ledger.toBase58() });
   console.log("Browser round completed with two swaps, four claims, and a reload after SELL.");
 } catch (error) {
   await page.screenshot({ path: resolve(stack.directory, "browser-failure.png"), fullPage: true });
   journal(stack.directory, "browser-failure", { error: String(error), pageErrors: errors, text: await page.locator("body").innerText() });
   result(stack.directory, { complete: false, environment: "local browser and MagicBlock", error: String(error) });
   throw error;
-} finally { await browser.close(); await keeperService?.stop(); await stopChild(web); await stack.stop(); }
+} finally { closeSync(log); await browser.close(); await keeperService?.stop(); if (web) await stopChild(web); await stack.stop(); }

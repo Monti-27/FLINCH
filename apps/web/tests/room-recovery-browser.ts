@@ -21,14 +21,14 @@ export async function checkRoomReadRecovery(page: Page, base: string, er: string
     try {
       await expect(page.getByRole("status").filter({ hasText: displayed })).toBeVisible();
       assert(intercepted > 0);
-      await expect(page.getByRole("button", { name: "Get sell quote", exact: true })).toBeDisabled();
+      await expect(page.getByRole("button", { name: /^Queue SELL/ })).toBeDisabled();
       await expect(page.getByText("Current entitlement", { exact: true })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Room unavailable", exact: true })).toHaveCount(0);
       assert.equal(await actions.evaluate(element => element.isConnected), true);
       await page.screenshot({ path: resolve(directory, `room-${name}-outage.png`), fullPage: true });
     } finally { await page.unroute(endpoint, fail); }
     await expect(page.getByRole("status").filter({ hasText: displayed })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Get sell quote", exact: true })).toBeEnabled();
+    await expect(page.getByRole("button", { name: /^Queue SELL/ })).toBeEnabled();
     assert.equal(await actions.evaluate(element => element.isConnected), true);
   }
   await actions.dispose();

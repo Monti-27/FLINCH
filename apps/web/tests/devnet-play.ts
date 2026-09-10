@@ -17,7 +17,7 @@ import type { Operation } from "../src/lib/operation.ts";
 const args = process.argv.slice(2);
 assert((args.length === 3 || args.length === 4 && args[3] === "--hosted") && args[0] === "--directory" && args[2] === "--execute-devnet", "Explicit devnet execution is required");
 const hosted = args[3] === "--hosted";
-const origin = hosted ? "https://flinch-game.up.railway.app" : "http://127.0.0.1:3500";
+const origin = hosted ? "https://flinch.up.railway.app" : "http://127.0.0.1:3500";
 if (hosted) {
   const web = await (await fetch(`${origin}/api/health`, { signal: AbortSignal.timeout(10000) })).json();
   const keeper = await (await fetch("https://flinch-keeper.up.railway.app/health", { signal: AbortSignal.timeout(10000) })).json();
@@ -68,10 +68,9 @@ async function queueBrowser(page: Page, seat: number) {
     const existing = (await operations(page)).find(item => item.runtime === "er");
     assert(!existing || existing.status === "not_sent", "An existing submitted sell must be reconciled, not retried");
     const signedBefore = signatures.length;
-    const quote = page.getByRole("button", { name: /^(Get sell quote|Refresh quote)$/ });
-    await expect(quote).toBeEnabled();
-    await quote.click();
-    await page.getByRole("button", { name: `Queue SELL · ${seat === 1 ? "wallet approval" : "session key"}`, exact: true }).click();
+    const sell = page.getByRole("button", { name: `Queue SELL · ${seat === 1 ? "wallet approval" : "session key"}`, exact: true });
+    await expect(sell).toBeEnabled();
+    await sell.click();
     const outcome = await waitFor("browser sell outcome", async () => {
       const op = (await operations(page)).find(item => item.runtime === "er");
       if (op && op.signature !== existing?.signature) {
@@ -81,7 +80,7 @@ async function queueBrowser(page: Page, seat: number) {
         if (status.kind === "confirmed") return { op, notSubmitted: false };
         return;
       }
-      if (await expired.isVisible() && await page.getByRole("button", { name: "Refresh quote", exact: true }).isEnabled())
+      if (await expired.isVisible() && await sell.isEnabled())
         return { op: undefined, notSubmitted: true };
     });
     await record(evidence, { event: "browser-sell-outcome", seat, attempt, ...outcome });
@@ -126,12 +125,12 @@ try {
   const er = await freshCohort();
   erUrl = er.connection.rpcEndpoint;
   await record(evidence, { event: "live-placement", placement: er.placement, control: er.control, ledger: (await client.readRoom(ledger)).ledger });
-  await expect(pages[0].getByRole("button", { name: "Get sell quote", exact: true })).toBeEnabled();
+  await expect(pages[0].getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeEnabled();
   await pages[0].screenshot({ path: resolve(evidence, "active-desktop.png"), fullPage: true });
   const beforeExpiry = signatures.length;
-  await pages[0].getByRole("button", { name: "Get sell quote", exact: true }).click();
-  await expect(pages[0].getByText("Quote expired; refresh before signing", { exact: true })).toBeVisible({ timeout: 5000 });
-  await expect(pages[0].getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeDisabled();
+  await pages[0].waitForTimeout(3000);
+  await expect(pages[0].getByText("Quotes refresh automatically", { exact: true })).toBeVisible();
+  await expect(pages[0].getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeEnabled();
   assert.equal(signatures.length, beforeExpiry);
   for (const seat of [0, 1, 2]) {
     const page = pages[seat];

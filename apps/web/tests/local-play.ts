@@ -72,13 +72,12 @@ try {
     });
   }
   console.log("Four independent browser wallets joined; keeper starts the room automatically");
-  await expect(pages[0].getByRole("button", { name: "Get sell quote", exact: true })).toBeEnabled();
+  await expect(pages[0].getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeEnabled();
   await sandbox.command(`pause ${ledger}`, "paused");
   let restartedPid: unknown;
   for (const seat of [0, 1, 2]) {
     const page = pages[seat];
-    await expect(page.getByRole("button", { name: "Get sell quote", exact: true })).toBeEnabled();
-    await page.getByRole("button", { name: "Get sell quote", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeEnabled();
     await page.getByRole("button", { name: "Queue SELL · session key", exact: true }).click();
     const signature = await poll("browser session signature", async () => await page.evaluate(() => Object.keys(localStorage)
       .filter(key => key.startsWith("flinch:v2:")).map(key => JSON.parse(localStorage.getItem(key)!))
