@@ -184,7 +184,7 @@ Exact runs, signatures, balance snapshots and known failures live in [Testing](d
 - [Architecture](docs/ARCHITECTURE.md) and [program contract](docs/PROGRAM.md)
 - [Quotes and minimum outputs](docs/QUOTES.md)
 - [Client and keeper](docs/CLIENT_KEEPER.md) and [keeper operations](docs/KEEPER_OPERATIONS.md)
-- [Frontend setup](docs/FRONTEND.md) and [brand assets](brand.md)
+- [Frontend setup](docs/FRONTEND.md) and [brand assets](apps/web/public/brand/)
 - [Build plan](docs/BUILD_PLAN.md) and [current development handoff](docs/LLM_HANDOFF.md)
 - [MagicBlock Ephemeral Rollups](https://docs.magicblock.gg/pages/ephemeral-rollups-ers/introduction/ephemeral-rollup)
 - [Ephemeral Rollups SDK](https://github.com/magicblock-labs/ephemeral-rollups-sdk)
