@@ -23,7 +23,10 @@ function fixture() {
   const read = vi.fn(async () => room);
   const resolve = vi.fn(async () => ({ connection: nextRpc, control: current, now: 101n }));
   const client = { config: { network: "devnet", expectedGenesis: DEVNET_GENESIS }, base: { getGenesisHash: async () => DEVNET_GENESIS },
-    readRoom: read, resolve, quote: vi.fn(async () => quote), instructions: controlInstructions(createProgram(rpc)) } as unknown as FlinchClient;
+    readRoom: read, resolve, quoteContext: vi.fn(async () => {
+      await read();
+      return { quote, er: await resolve(), observedAtMs: Date.now() };
+    }), instructions: controlInstructions(createProgram(rpc)) } as unknown as FlinchClient;
   const sign = vi.fn(signer.sign);
   const values = new Map<string, string>();
   const runner = new OperationRunner({ getItem: key => values.get(key) ?? null, setItem: (key, value) => { values.set(key, value); } }, "test");
@@ -47,7 +50,7 @@ it("prepares only under the operation guard, resolves twice and journals the ver
   expect(f.read).toHaveBeenCalledTimes(2);
   expect(f.resolve).toHaveBeenCalledTimes(2);
   expect(f.sign).toHaveBeenCalledTimes(1);
-  expect(f.client.quote).toHaveBeenCalledTimes(2);
+  expect(f.client.quoteContext).toHaveBeenCalledTimes(2);
   expect(f.send).toHaveBeenCalledTimes(1);
   expect(f.runner.current()?.endpoint).toBe(f.rpc.rpcEndpoint);
 });

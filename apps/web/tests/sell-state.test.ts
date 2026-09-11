@@ -45,3 +45,29 @@ it("keeps queued and confirmed states distinct and never enables stale or specta
   expect(sellState(room, live, -1, 101n).available).toBe(false);
   expect(sellState(room, live, 0, 190n).available).toBe(false);
 });
+
+it("selling closed is not settled and stays closed without ER availability", () => {
+  const { room, live } = fixture();
+  for (const control of [live, undefined]) {
+    const state = sellState({ ...room, now: 190n }, control, 0, 189n);
+    expect(state.closed).toBe(true);
+    expect(state.ended).toBe(false);
+    expect(state.available).toBe(false);
+    expect(state.active).toBe(false);
+    expect(state.unavailable).toContain("Waiting for Solana");
+  }
+  expect(sellState(room, live, 0, 189n).closed).toBe(false);
+  expect(sellState(room, live, 0, 190n).closed).toBe(true);
+});
+
+it("can renew time alone but cannot approve an old position or interrupt its replacement quote", () => {
+  const { room, live, quote } = fixture();
+  expect(sellState(room, live, 0, 105n, quote, 5000).reviewable).toBe(true);
+  const next = { ...live, revision: 1n, holdings: [1_000_834n, 0n, 1_000_833n, 1_000_833n] as const };
+  const updated = { ...room, ledger: { ...room.ledger, economics: { ...room.ledger.economics!, revision: 1n, holdings: next.holdings } } };
+  expect(sellState(updated, next, 0, 105n, quote, 5000).reviewable).toBe(false);
+  expect(sellState(updated, next, 0, 105n).reviewable).toBe(false);
+  expect(sellState(updated, next, 0, 105n, { ...quote, revision: 1n, holdings: next.holdings }, 5000).reviewable).toBe(true);
+  expect(sellState(room, { ...live, sellers: 2 }, 0, 101n, quote, 1000).reviewable).toBe(false);
+  expect(sellState(room, live, -1, 101n, quote, 1000).reviewable).toBe(false);
+});

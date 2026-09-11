@@ -6,9 +6,9 @@ import type { PublicKey } from "@solana/web3.js";
 import type { FlinchClient } from "@flinch/client";
 import { createQuoteFeed } from "./quote-feed.ts";
 
-export function useSellQuote(client: FlinchClient, ledger: PublicKey, seat: number, wallet: string | undefined, active: boolean) {
+export function useSellQuote(client: FlinchClient, ledger: PublicKey, seat: number, wallet: string | undefined, active: boolean, revision?: bigint) {
   const address = ledger.toBase58();
-  const feed = useMemo(() => createQuoteFeed(signal => client.quote(ledger, seat, 100, signal)), [client, address, seat, wallet]);
+  const feed = useMemo(() => createQuoteFeed(signal => client.quote(ledger, seat, 100, signal)), [client, address, seat, wallet, revision]);
   const state = useStore(feed.store);
   useEffect(() => {
     const synchronize = () => {

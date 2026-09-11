@@ -17,7 +17,7 @@ export type Report = (event: RuntimeEvent) => void;
 async function clientFor(config: KeeperConfig) {
   const base = connection(config.baseUrl, config.network);
   await verifyNetwork(base, config.network, config.expectedGenesis);
-  return new FlinchClient({ network: config.network, baseUrl: config.baseUrl, expectedGenesis: config.expectedGenesis },
+  return new FlinchClient({ network: config.network, baseUrl: config.baseUrl, expectedGenesis: config.expectedGenesis, previousBaseUrls: config.previousBaseUrls },
     config.localErUrl ? new LocalPlacementResolver(base, config.localErUrl) : undefined);
 }
 

@@ -26,7 +26,8 @@ export function allocateQuoteOutput(output: bigint, inputs: readonly bigint[]): 
 
 export function assertSellAvailable(control: Control, seat: number, now: bigint) {
   check(Number.isInteger(seat) && seat >= 0 && seat < 4, "Invalid quote seat");
-  check(control.phase === "live" && now >= control.startedAt && now < control.startedAt + 90n, "Room is not accepting sells");
+  check(now < control.startedAt + 90n, "Selling is closed for this round");
+  check(control.phase === "live" && now >= control.startedAt, "Room is not accepting sells");
   check(control.holdings[seat] > 0n && control.attempts[seat] < 3 && !(control.sellers & (1 << seat)), "Seat cannot queue a sell");
   const currentCohort = Number((now - control.startedAt) / 2n);
   check(currentCohort >= control.nextCohort && (!control.sellers || currentCohort === control.cohortIndex), "Cohort is returning or closed");
@@ -61,6 +62,7 @@ export function quoteSell(pool: PoolSnapshot, control: Control, seat: number, no
 
 export function validateSellQuote(quote: SellQuote, control: Control, now: bigint, wallTime = Date.now()) {
   check(Number.isInteger(quote.seat) && quote.seat >= 0 && quote.seat < 4 && u64(quote.minimumOutput) > 0n, "Invalid sell quote");
+  check(now < control.startedAt + 90n, "Selling is closed for this round");
   check(wallTime >= quote.receivedAtMs && wallTime < quote.expiresAtMs, "Quote expired; refresh before signing");
   check(control.ledger.equals(quote.ledger) && control.revision === quote.revision && control.phase === "live", "Quote belongs to another room revision");
   check(control.sellers === quote.sellers && control.holdings.every((value, index) => value === quote.holdings[index]), "Cohort changed; refresh quote");

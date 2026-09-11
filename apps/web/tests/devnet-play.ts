@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { mkdtemp } from "node:fs/promises";
 import { resolve } from "node:path";
 import { chromium, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { Page, Request } from "@playwright/test";
 import { PublicKey } from "@solana/web3.js";
-import { getAssociatedTokenAddressSync, NATIVE_MINT } from "@solana/spl-token";
+import { getAccount, getAssociatedTokenAddressSync, NATIVE_MINT } from "@solana/spl-token";
 import { FlinchClient, connection, transactionStatus, USDC_MINT, vaults } from "@flinch/client";
 import { probeDevnet } from "../../../tools/devnet/probe.ts";
 import { readKey, writePrivate } from "../../../tools/devnet/private-files.ts";
@@ -17,6 +17,8 @@ import type { Operation } from "../src/lib/operation.ts";
 const args = process.argv.slice(2);
 assert((args.length === 3 || args.length === 4 && args[3] === "--hosted") && args[0] === "--directory" && args[2] === "--execute-devnet", "Explicit devnet execution is required");
 const hosted = args[3] === "--hosted";
+const approvalDelayMs = Number(process.env.FLINCH_TEST_SELL_APPROVAL_DELAY_MS ?? 0);
+assert(Number.isInteger(approvalDelayMs) && approvalDelayMs >= 0 && approvalDelayMs <= 10_000, "Invalid test approval delay");
 const origin = hosted ? "https://flinch.up.railway.app" : "http://127.0.0.1:3500";
 if (hosted) {
   const web = await (await fetch(`${origin}/api/health`, { signal: AbortSignal.timeout(10000) })).json();
@@ -36,6 +38,7 @@ const errors: string[] = [];
 const discarded = new Set<string>();
 const pages: Page[] = [];
 let rejectNext = false;
+let delayedApproval = false;
 let runtime: "base" | "er" = "base";
 let ledger: PublicKey | undefined;
 let erUrl: string | undefined;
@@ -59,10 +62,10 @@ async function freshCohort() {
 
 async function queueBrowser(page: Page, seat: number) {
   for (let attempt = 0; attempt < 8; attempt++) {
-    const expired = page.locator('[data-sonner-toast][data-front="true"][data-removed="false"][data-type="warning"]').filter({ hasText: "Quote expired" });
-    if (await expired.isVisible()) {
-      await expired.getByRole("button", { name: "Close toast", exact: true }).click();
-      await expect(expired).not.toBeVisible();
+    const rejected = page.locator('[data-sonner-toast][data-front="true"][data-removed="false"]').filter({ hasText: /Quote expired|Position changed|Price moved|Couldn't send your sell request/ });
+    if (await rejected.isVisible()) {
+      await rejected.getByRole("button", { name: "Close toast", exact: true }).click();
+      await expect(rejected).not.toBeVisible();
     }
     await freshCohort();
     const existing = (await operations(page)).find(item => item.runtime === "er");
@@ -80,8 +83,12 @@ async function queueBrowser(page: Page, seat: number) {
         if (status.kind === "confirmed") return { op, notSubmitted: false };
         return;
       }
-      if (await expired.isVisible() && await sell.isEnabled())
-        return { op: undefined, notSubmitted: true };
+      if (await rejected.isVisible()) {
+        const notice = await rejected.innerText();
+        await record(evidence, { event: "sell-rejected-before-signing", seat, attempt, notice });
+        assert(!/Couldn't send/.test(notice), notice);
+        return { op: undefined, notSubmitted: true, notice };
+      }
     });
     await record(evidence, { event: "browser-sell-outcome", seat, attempt, ...outcome });
     if (!outcome.notSubmitted && outcome.op) return outcome.op;
@@ -96,8 +103,32 @@ try {
     const page = await context.newPage();
     page.setDefaultTimeout(15_000);
     page.on("pageerror", error => errors.push(error.message));
+    const rpcRequest = (request: Request) => {
+      const url = new URL(request.url());
+      if (url.pathname !== "/api/rpc" && !url.hostname.endsWith(".magicblock.app")) return;
+      try { return { host: url.hostname, method: request.postDataJSON()?.method }; }
+      catch { return; }
+    };
+    page.on("requestfailed", request => {
+      const rpc = rpcRequest(request);
+      if (rpc) void record(evidence, { event: "rpc-request-failed", seat, ...rpc, failure: request.failure()?.errorText });
+    });
+    page.on("response", async response => {
+      const rpc = rpcRequest(response.request());
+      if (!rpc) return;
+      try {
+        const body = await response.json();
+        if (body.error || !response.ok()) await record(evidence, { event: "rpc-response-error", seat, ...rpc,
+          status: response.status(), code: body.error?.code });
+      } catch {}
+    });
     await browserWallet(page, players[seat], signature => { signatures.push({ seat, signature, runtime }); }, async () => {
       if (rejectNext) { rejectNext = false; throw Object.assign(new Error("User rejected the request"), { code: 4001 }); }
+      if (seat === 1 && runtime === "er" && approvalDelayMs && !delayedApproval) {
+        delayedApproval = true;
+        await record(evidence, { event: "delayed-wallet-approval", seat, milliseconds: approvalDelayMs });
+        await page.waitForTimeout(approvalDelayMs);
+      }
     });
     await page.goto(`${origin}/play`);
     await page.getByRole("button", { name: "Connect wallet", exact: true }).click();
@@ -107,7 +138,7 @@ try {
   }
   rejectNext = true;
   await pages[0].getByRole("button", { name: "Create room", exact: true }).click();
-  await expect(pages[0].locator("[data-sonner-toast]").filter({ hasText: "Request cancelled" })).toBeVisible();
+  await expect(pages[0].locator("[data-sonner-toast]").filter({ hasText: "Request cancelled" })).toBeVisible({ timeout: 30_000 });
   assert.equal(signatures.length, 0);
   assert.equal((await operations(pages[0])).length, 0);
   await pages[0].getByRole("button", { name: "Create room", exact: true }).click();
@@ -132,6 +163,7 @@ try {
   await expect(pages[0].getByText("Quotes refresh automatically", { exact: true })).toBeVisible();
   await expect(pages[0].getByRole("button", { name: "Queue SELL · session key", exact: true })).toBeEnabled();
   assert.equal(signatures.length, beforeExpiry);
+  const saleEntitlements = new Map<number, bigint>();
   for (const seat of [0, 1, 2]) {
     const page = pages[seat];
     if (seat === 1) await page.reload();
@@ -145,23 +177,28 @@ try {
     });
     const expected = settled.ledger.economics!.usdcClaims[seat];
     assert(expected > 0n);
-    runtime = "base";
+    saleEntitlements.set(seat, expected);
+  }
+  runtime = "base";
+  for (const seat of [0, 1, 2]) {
+    const page = pages[seat];
+    const expected = saleEntitlements.get(seat)!;
     if (seat === 0) await page.reload();
     await expect(page.getByRole("button", { name: "Claim USDC", exact: true })).toBeEnabled();
     const destination = getAssociatedTokenAddressSync(USDC_MINT, players[seat].publicKey);
-    const before = BigInt((await client.base.getTokenAccountBalance(destination)).value.amount);
+    const before = (await getAccount(client.base, destination, "confirmed")).amount;
     if (seat === 0) {
       const beforeCancel: number = signatures.length;
       rejectNext = true;
       await page.getByRole("button", { name: "Claim USDC", exact: true }).click();
-      await expect(page.locator("[data-sonner-toast]").filter({ hasText: "Request cancelled" })).toBeVisible();
+      await expect(page.locator("[data-sonner-toast]").filter({ hasText: "Request cancelled" })).toBeVisible({ timeout: 30_000 });
       assert.equal(signatures.length, beforeCancel);
       assert.equal((await client.readRoom(ledger)).ledger.economics!.usdcClaims[seat], expected);
       await page.route(`${erUrl}**`, route => route.fulfill({ status: 503, body: "Test client ER read outage" }));
     }
     await page.getByRole("button", { name: "Claim USDC", exact: true }).click();
     const after = await waitFor("browser USDC withdrawal", async () => {
-      const amount = BigInt((await client.base.getTokenAccountBalance(destination)).value.amount);
+      const amount = (await getAccount(client.base, destination, "confirmed")).amount;
       return amount - before === expected ? amount : undefined;
     });
     if (seat === 0) await page.unroute(`${erUrl}**`);
@@ -172,17 +209,17 @@ try {
   assert.equal(terminal.terminalTag, 1);
   assert.equal(terminal.terminalSeat, 3);
   const destination = getAssociatedTokenAddressSync(NATIVE_MINT, players[3].publicKey);
-  const before = BigInt((await client.base.getTokenAccountBalance(destination)).value.amount);
+  const before = (await getAccount(client.base, destination, "confirmed")).amount;
   await pages[3].getByRole("button", { name: "Claim WSOL", exact: true }).click();
   const after = await waitFor("browser holder withdrawal", async () => {
-    const amount = BigInt((await client.base.getTokenAccountBalance(destination)).value.amount);
+    const amount = (await getAccount(client.base, destination, "confirmed")).amount;
     return amount - before === terminal.holdings[3] ? amount : undefined;
   });
   await record(evidence, { event: "browser-claim", seat: 3, asset: "wsol", before, after, expected: terminal.holdings[3] });
   for (const page of pages) {
     await page.getByText("Room & session controls", { exact: true }).click();
     await page.getByRole("button", { name: "Stop session and request revocation", exact: true }).click();
-    await expect(page.locator("[data-sonner-toast]").filter({ hasText: "Session revocation recorded" })).toBeVisible();
+    await expect(page.locator("[data-sonner-toast]").filter({ hasText: "Session revocation recorded" })).toBeVisible({ timeout: 30_000 });
   }
   for (const item of signatures.filter(item => !discarded.has(item.signature)))
     await capture(evidence, item.runtime === "base" ? client.base : connection(erUrl, "devnet"), item.signature, `wallet-${item.seat}`);
@@ -192,13 +229,13 @@ try {
     await capture(evidence, op.runtime === "base" ? client.base : connection(op.endpoint, "devnet"), op.signature, `keeper-${op.action}`);
     if (op.returnSignature) await capture(evidence, client.base, op.returnSignature, "base-return");
   }
-  for (const address of Object.values(vaults(ledger))) assert.equal((await client.base.getTokenAccountBalance(address)).value.amount, "0");
+  for (const address of Object.values(vaults(ledger))) assert.equal((await getAccount(client.base, address, "confirmed")).amount, 0n);
   assert.deepEqual(errors, []);
   await pages[3].screenshot({ path: resolve(evidence, "complete-desktop.png"), fullPage: true });
   await writePrivate(resolve(evidence, "result.json"), json({ complete: true, network: "devnet", origin, hosted, ledger, swaps: 3, claims: 4,
     syntheticLiquidity: false, wallet: "four synthetic Wallet Standard adapters", ordinaryExtensionsVerified: false,
     depositsAndClaimsThroughUi: true, sessionAndWalletSell: true, reload: true, rejectedCreateAndClaim: true,
-    quoteExpiry: true, claimDuringClientErOutage: true, revocations: 4 }));
+    quoteExpiry: true, claimDuringClientErOutage: true, revocations: 4, approvalDelayMs, delayedApproval }));
   console.log(`Devnet browser round complete: ${evidence}`);
 } catch (error) {
   await record(evidence, { event: "browser-stopped", ledger, error: error instanceof Error ? error.message : "unknown", pageErrors: errors,

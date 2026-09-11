@@ -16,10 +16,10 @@ import { findReturnProof } from "./commitment.ts";
 import { transactionStatus } from "./transactions.ts";
 import { check, ClientError } from "./errors.ts";
 import { readQuotePool } from "./quotes/read.ts";
-import { quoteSell } from "./quotes/sell.ts";
+import { readSellContext } from "./quotes/context.ts";
 import { readReceipts } from "./accounts/receipts.ts";
 
-export type ClientConfig = Readonly<{ network: Network; baseUrl: string; expectedGenesis: string }>;
+export type ClientConfig = Readonly<{ network: Network; baseUrl: string; expectedGenesis: string; previousBaseUrls?: readonly string[] }>;
 
 export class FlinchClient {
   readonly base;
@@ -32,7 +32,10 @@ export class FlinchClient {
 
   constructor(config: ClientConfig, resolver?: PlacementResolver) {
     check(config.network !== "localnet" || resolver !== undefined, "Localnet requires an explicit placement resolver");
-    this.config = Object.freeze({ ...config });
+    check(!config.previousBaseUrls || config.previousBaseUrls.length <= 4, "Too many previous base endpoints");
+    this.config = Object.freeze({ ...config, ...(config.previousBaseUrls ? {
+      previousBaseUrls: Object.freeze(config.previousBaseUrls.map(url => endpoint(url, config.network))),
+    } : {}) });
     this.programId = programIdFor(config.network);
     this.resolver = resolver ?? new DevnetRouter(undefined, undefined, this.programId);
     this.base = connection(config.baseUrl, config.network);
@@ -66,9 +69,11 @@ export class FlinchClient {
   }
 
   async quote(ledger: PublicKey, seat: number, slippageBps = 100, signal?: AbortSignal) {
-    const room = await this.readRoom(ledger);
-    const [pool, er] = await Promise.all([readQuotePool(this.base, room.ledger.pool, room.slot), this.resolve(room, signal)]);
-    return quoteSell(pool, er.control, seat, er.now, slippageBps);
+    return (await this.quoteContext(ledger, seat, slippageBps, signal)).quote;
+  }
+
+  async quoteContext(ledger: PublicKey, seat: number, slippageBps = 100, signal?: AbortSignal) {
+    return readSellContext(this, (pool, slot) => readQuotePool(this.base, pool, slot), ledger, seat, slippageBps, signal);
   }
 
   async returnProof(room: BaseRoom) {
@@ -84,7 +89,7 @@ export class FlinchClient {
   async status(runtime: "base" | "er", url: string, signature: string) {
     await this.ready();
     const validated = endpoint(url, this.config.network, runtime === "er");
-    check(runtime !== "base" || validated === this.base.rpcEndpoint, "Base journal endpoint differs from configuration");
+    check(runtime !== "base" || validated === this.base.rpcEndpoint || this.config.previousBaseUrls?.includes(validated), "Base journal endpoint differs from configuration");
     return transactionStatus(runtime === "base" ? this.base : connection(validated, this.config.network), signature);
   }
 }

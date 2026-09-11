@@ -9,6 +9,7 @@ import { connection, DEVNET_GENESIS, verifyNetwork } from "../../packages/client
 import { decodeHistory } from "../../apps/keeper/src/postgres-store.ts";
 import { capture, json } from "./operations.ts";
 import { writePrivate } from "./private-files.ts";
+import { devnetEndpoint } from "./settings.ts";
 
 const args = process.argv.slice(2);
 assert(args.length === 1 || args.length === 2 && args[1] === "--after-restart");
@@ -18,8 +19,9 @@ assert(result.complete && result.hosted && result.network === "devnet");
 const room = new PublicKey(result.ledger).toBase58();
 const { stdout } = await promisify(execFile)("railway", ["ssh", "--project", "faab688f-6c36-46c1-921f-a379851d470f",
   "--environment", "a8e640c0-d26f-43dc-a8c9-9f4bc715a39e", "--service", "d803ccaa-f495-4668-8aed-aa2e602a0e7c",
+  ...process.env.FLINCH_RAILWAY_SSH_KEY ? ["--identity-file", process.env.FLINCH_RAILWAY_SSH_KEY] : [],
   "--", "node", "apps/keeper/src/inspect-hosted.ts", room], { timeout: 30000, maxBuffer: 3_000_000,
-  env: { ...process.env, RAILWAY_CALLER: "skill:use-railway@1.4.0", RAILWAY_AGENT_SESSION: "flinch-activate-20260911" } });
+  env: { ...process.env, RAILWAY_CALLER: "skill:use-railway@1.4.0", RAILWAY_AGENT_SESSION: process.env.RAILWAY_AGENT_SESSION ?? "flinch-hosted-proof" } });
 const line = stdout.split("\n").find(value => value.startsWith('{"room":'));
 assert(line, "Hosted history response missing");
 const report = JSON.parse(line);
@@ -36,7 +38,7 @@ if (args[1] === "--after-restart") {
     checkedAt: new Date().toISOString(), transitions: history.length }));
   console.log(`Hosted journal retained across replacement: ${history.length} transitions`);
 } else {
-  const base = connection("https://rpc.magicblock.app/devnet", "devnet");
+  const base = connection(devnetEndpoint(), "devnet");
   await verifyNetwork(base, "devnet", DEVNET_GENESIS);
   await writePrivate(resolve(directory, "keeper-history.json"), json(history));
   const operations = [...new Map(history.map(operation => [operation.signature, operation])).values()];

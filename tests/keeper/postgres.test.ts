@@ -20,8 +20,11 @@ test("hosted deployment defaults to non-signing devnet and rejects unsafe activa
   assert.equal(config.execute, false);
   assert.equal(config.config.network, "devnet");
   assert.equal(config.config.keypairFile, undefined);
+  assert.deepEqual(hostedConfig({ ...env, FLINCH_PREVIOUS_BASE_RPC: "https://rpc.magicblock.app/devnet" }).config.previousBaseUrls,
+    ["https://rpc.magicblock.app/devnet"]);
   for (const changes of [{ PORT: "0" }, { PORT: "invalid" }, { FLINCH_KEEPER_EXECUTE: "yes" },
-    { FLINCH_KEEPER_EXECUTE: "true" }, { FLINCH_BASE_RPC: "http://localhost:8899" }, { DATABASE_URL: "" }]) {
+    { FLINCH_KEEPER_EXECUTE: "true" }, { FLINCH_BASE_RPC: "http://localhost:8899" }, { DATABASE_URL: "" },
+    { FLINCH_PREVIOUS_BASE_RPC: "https://example.com/?api-key=secret" }, { FLINCH_PREVIOUS_BASE_RPC: "http://localhost:8899" }]) {
     assert.throws(() => hostedConfig({ ...env, ...changes }));
   }
 });

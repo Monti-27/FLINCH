@@ -8,6 +8,7 @@ export function hostedConfig(env: NodeJS.ProcessEnv) {
   const execute = env.FLINCH_KEEPER_EXECUTE === "true";
   const config = parseConfig({ version: 1, network: "devnet",
     baseUrl: env.FLINCH_BASE_RPC ?? "https://rpc.magicblock.app/devnet", expectedGenesis: DEVNET_GENESIS,
+    previousBaseUrls: env.FLINCH_PREVIOUS_BASE_RPC?.split(",").map(url => url.trim()),
     rooms: [], discovery: { pool: env.FLINCH_POOL, validator: env.FLINCH_VALIDATOR },
     journalDirectory: "/tmp/flinch-journal", concurrency: 4, messageVersion: "v0",
     ...(execute ? { keypairFile: env.FLINCH_KEEPER_KEYPAIR_FILE, payer: env.FLINCH_KEEPER_PAYER } : {}) });

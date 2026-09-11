@@ -22,7 +22,7 @@ import "./room-tickets-fixture.css";
 
 const key = Keypair.generate();
 const initial = ticketRoom("sell");
-const room: BaseRoom = { ...initial, ledger: { ...initial.ledger,
+let room: BaseRoom = { ...initial, ledger: { ...initial.ledger,
   economics: { ...initial.ledger.economics!, holdings: [4_000_000n, 4_000_000n, 4_000_000n, 4_000_000n] },
   wallets: [key.publicKey, initial.ledger.wallets[1], initial.ledger.wallets[2], initial.ledger.wallets[3]] } };
 let live: Control = { ...room.ledger.economics!, address: key.publicKey, ledger: room.ledger.address, validator: room.ledger.validator,
@@ -30,7 +30,13 @@ let live: Control = { ...room.ledger.economics!, address: key.publicKey, ledger:
   attempts: [0, 0, 0, 0], nonces: [0n, 0n, 0n, 0n], minimumOutputs: [0n, 0n, 0n, 0n] };
 const started = Date.now();
 const now = () => 100n + BigInt(Math.floor((Date.now() - started) / 1000));
-const state = { reads: 0, prompts: 0, sends: 0, fail: false, available: true, reserve: 20_000_000_000n,
+const state = { reads: 0, prompts: 0, sends: 0, fail: false, available: true, reserve: 20_000_000_000n, delay: 100,
+  advancePosition: () => {
+    const revision = live.revision + 1n;
+    const holdings = [live.holdings[0] + 1000n, ...live.holdings.slice(1)] as unknown as Control["holdings"];
+    live = { ...live, revision, holdings };
+    room = { ...room, ledger: { ...room.ledger, economics: { ...room.ledger.economics!, revision, holdings } } };
+  },
   release: undefined as undefined | ((reject: boolean) => void) };
 Object.assign(window, { quoteTest: state });
 const rpc = new Connection("https://devnet-as.magicblock.app/");
@@ -46,12 +52,14 @@ const client = { config: { expectedGenesis: DEVNET_GENESIS, network: "devnet" },
   status: async () => ({ kind: "confirmed", slot: 50 }), instructions: controlInstructions(createProgram(rpc)),
   quote: async () => {
     state.reads++;
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, state.delay));
     if (state.fail) throw new Error("Test RPC unavailable");
     return quoteSell({ pool: room.ledger.pool, slot: 50, chainTime: now(), receivedAtMs: Date.now(),
       inputReserve: 100_000_000_000n, outputReserve: state.reserve, tradeFeeRate: 2500n,
       creatorFeeRate: 0n, fundFeeRate: 0n, protocolFeeRate: 0n, creatorFeeOnInput: true }, live, 0, now());
   } } as unknown as FlinchClient;
+client.quoteContext = async () => ({ quote: await client.quote(room.ledger.address, 0),
+  er: await client.resolve(room), observedAtMs: Date.now() });
 const signer: TransactionSigner = { publicKey: key.publicKey, sign: async tx => {
   state.prompts++;
   await new Promise<void>((resolve, reject) => { state.release = cancelled => {

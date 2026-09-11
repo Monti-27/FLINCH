@@ -19,7 +19,7 @@ export default defineRailway(() => {
     replicas: { "asia-southeast1-eqsg3a": 1 },
     deploy: { drainingSeconds: 30, restartPolicyMaxRetries: 5 },
     networking: { privateNetworkEndpoint: "flinch" },
-    env: { FLINCH_KEEPER_URL: preserve(), NEXT_PUBLIC_FLINCH_BASE_RPC: preserve(), NEXT_PUBLIC_FLINCH_ENABLE_TRANSACTIONS: preserve(), NEXT_PUBLIC_FLINCH_GENESIS: preserve(), NEXT_PUBLIC_FLINCH_NETWORK: preserve(), NEXT_PUBLIC_FLINCH_POOL: preserve(), NEXT_PUBLIC_FLINCH_VALIDATOR: preserve(), NEXT_TELEMETRY_DISABLED: preserve(), NODE_ENV: preserve(), PORT: preserve(), RAILPACK_BUN_VERSION: preserve(), RAILPACK_INSTALL_CMD: preserve(), RAILPACK_NODE_VERSION: preserve(), RAILWAY_DEPLOYMENT_DRAINING_SECONDS: preserve() },
+    env: { FLINCH_HELIUS_API_KEY: preserve(), FLINCH_RPC_ORIGIN: preserve(), NEXT_PUBLIC_FLINCH_PREVIOUS_BASE_RPC: preserve(), FLINCH_KEEPER_URL: preserve(), NEXT_PUBLIC_FLINCH_BASE_RPC: preserve(), NEXT_PUBLIC_FLINCH_ENABLE_TRANSACTIONS: preserve(), NEXT_PUBLIC_FLINCH_GENESIS: preserve(), NEXT_PUBLIC_FLINCH_NETWORK: preserve(), NEXT_PUBLIC_FLINCH_POOL: preserve(), NEXT_PUBLIC_FLINCH_VALIDATOR: preserve(), NEXT_TELEMETRY_DISABLED: preserve(), NODE_ENV: preserve(), PORT: preserve(), RAILPACK_BUN_VERSION: preserve(), RAILPACK_INSTALL_CMD: preserve(), RAILPACK_NODE_VERSION: preserve(), RAILWAY_DEPLOYMENT_DRAINING_SECONDS: preserve() },
   });
   const flinchKeeper = service("flinch-keeper", {
     source: { type: "github" },
@@ -32,7 +32,7 @@ export default defineRailway(() => {
     replicas: { "asia-southeast1-eqsg3a": 1 },
     deploy: { drainingSeconds: 30, restartPolicyMaxRetries: 5 },
     networking: { privateNetworkEndpoint: "flinch-keeper" },
-    env: { DATABASE_URL: preserve(), FLINCH_BASE_RPC: preserve(), FLINCH_KEEPER_EXECUTE: preserve(), FLINCH_KEEPER_PAYER: preserve(), FLINCH_KEEPER_SECRET: preserve(), FLINCH_POOL: preserve(), FLINCH_VALIDATOR: preserve(), NEXT_TELEMETRY_DISABLED: preserve(), NODE_ENV: preserve(), PORT: preserve(), RAILPACK_BUN_VERSION: preserve(), RAILPACK_INSTALL_CMD: preserve(), RAILPACK_NODE_VERSION: preserve(), RAILWAY_DEPLOYMENT_DRAINING_SECONDS: preserve() },
+    env: { FLINCH_PREVIOUS_BASE_RPC: preserve(), DATABASE_URL: preserve(), FLINCH_BASE_RPC: preserve(), FLINCH_KEEPER_EXECUTE: preserve(), FLINCH_KEEPER_PAYER: preserve(), FLINCH_KEEPER_SECRET: preserve(), FLINCH_POOL: preserve(), FLINCH_VALIDATOR: preserve(), NEXT_TELEMETRY_DISABLED: preserve(), NODE_ENV: preserve(), PORT: preserve(), RAILPACK_BUN_VERSION: preserve(), RAILPACK_INSTALL_CMD: preserve(), RAILPACK_NODE_VERSION: preserve(), RAILWAY_DEPLOYMENT_DRAINING_SECONDS: preserve() },
   });
 
   return project("incredible-friendship", {

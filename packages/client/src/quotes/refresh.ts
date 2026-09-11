@@ -6,6 +6,10 @@ export async function refreshSellQuote(client: Pick<FlinchClient, "quote">, appr
   signal?.throwIfAborted();
   const fresh = await client.quote(approved.ledger, approved.seat, approved.slippageBps, signal);
   signal?.throwIfAborted();
+  return preserveSellMinimum(approved, fresh);
+}
+
+export function preserveSellMinimum(approved: SellQuote, fresh: SellQuote): SellQuote {
   check(fresh.ledger.equals(approved.ledger) && fresh.pool.equals(approved.pool) && fresh.seat === approved.seat
     && fresh.revision === approved.revision && fresh.nonce === approved.nonce, "Position changed; review a new sell quote");
   check(fresh.sellers === approved.sellers && fresh.holdings.every((value, seat) => value === approved.holdings[seat]),

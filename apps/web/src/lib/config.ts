@@ -13,7 +13,8 @@ export function webConfig(): WebConfig {
   if (!expectedGenesis) throw new Error("Localnet requires its explicit genesis hash");
   const localEr = process.env.NEXT_PUBLIC_FLINCH_LOCAL_ER;
   if (network === "localnet" && !localEr) throw new Error("Localnet requires an explicit local ER resolver");
-  return { network, baseUrl, expectedGenesis, localEr, transactions: process.env.NEXT_PUBLIC_FLINCH_ENABLE_TRANSACTIONS === "true",
+  const previousBaseUrls = process.env.NEXT_PUBLIC_FLINCH_PREVIOUS_BASE_RPC?.split(",").map(url => endpoint(url.trim(), network));
+  return { network, baseUrl, previousBaseUrls, expectedGenesis, localEr, transactions: process.env.NEXT_PUBLIC_FLINCH_ENABLE_TRANSACTIONS === "true",
     pool: process.env.NEXT_PUBLIC_FLINCH_POOL ? new PublicKey(process.env.NEXT_PUBLIC_FLINCH_POOL) : undefined,
     validator: process.env.NEXT_PUBLIC_FLINCH_VALIDATOR ? new PublicKey(process.env.NEXT_PUBLIC_FLINCH_VALIDATOR) : undefined };
 }

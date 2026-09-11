@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { realpath } from "node:fs/promises";
 import { relative, resolve, sep } from "node:path";
 import { PublicKey } from "@solana/web3.js";
-import { NATIVE_MINT, createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { NATIVE_MINT, createAssociatedTokenAccountIdempotentInstruction, getAccount, getAssociatedTokenAddressSync, unpackAccount } from "@solana/spl-token";
 import { FlinchClient, USDC_MINT, vaults } from "../../packages/client/src/index.ts";
 import { boundSessionToken, revokeSession } from "../../apps/web/src/lib/session.ts";
 import { FileOperationStore } from "../../apps/keeper/src/file-store.ts";
@@ -48,11 +48,11 @@ export async function reclaimRoom(directory: string, room: PublicKey, evidence: 
         const mint = asset === "wsol" ? NATIVE_MINT : USDC_MINT;
         const destination = getAssociatedTokenAddressSync(mint, player.publicKey);
         const info = await client.base.getAccountInfo(destination, "confirmed");
-        const before = info ? BigInt((await client.base.getTokenAccountBalance(destination)).value.amount) : 0n;
+        const before = info ? unpackAccount(destination, info).amount : 0n;
         await sendRecorded(output, `${prefix}-${seat}-${asset}`, client.base,
           [createAssociatedTokenAccountIdempotentInstruction(player.publicKey, destination, player.publicKey, mint),
             await client.instructions.claim(room, player.publicKey, asset)], [player]);
-        const after = BigInt((await client.base.getTokenAccountBalance(destination)).value.amount);
+        const after = (await getAccount(client.base, destination, "confirmed")).amount;
         assert.equal(after - before, expected);
         await record(output, { event: "recovery-claim", room, seat, asset, before, after, expected });
       }
@@ -65,7 +65,7 @@ export async function reclaimRoom(directory: string, room: PublicKey, evidence: 
       const revoked = await client.base.getAccountInfo(token, "confirmed");
       assert(!revoked || revoked.lamports === 0);
     }
-    for (const address of Object.values(vaults(room))) assert.equal((await client.base.getTokenAccountBalance(address)).value.amount, "0");
+    for (const address of Object.values(vaults(room))) assert.equal((await getAccount(client.base, address, "confirmed")).amount, 0n);
     const config = await readConfig(resolve(location, "keeper-config.json"));
     const history = await new FileOperationStore(config.journalDirectory).history(room.toBase58());
     for (const op of new Map(history.filter(op => op.action === "recover").map(op => [op.signature, op])).values())

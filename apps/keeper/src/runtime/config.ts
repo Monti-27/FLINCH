@@ -6,13 +6,13 @@ import { KeeperError } from "./errors.ts";
 import { readBoundedFile } from "./files.ts";
 
 export type KeeperConfig = Readonly<{
-  network: Network; baseUrl: string; expectedGenesis: string; rooms: readonly PublicKey[];
+  network: Network; baseUrl: string; expectedGenesis: string; rooms: readonly PublicKey[]; previousBaseUrls?: readonly string[];
   journalDirectory: string; keypairFile?: string; payer?: PublicKey; localErUrl?: string;
   concurrency: number; messageVersion: "v0" | "legacy";
   discovery?: Readonly<{ pool: PublicKey; validator: PublicKey }>;
 }>;
 
-const fields = new Set(["version", "network", "baseUrl", "expectedGenesis", "rooms", "journalDirectory", "keypairFile", "payer", "localErUrl", "concurrency", "messageVersion", "discovery"]);
+const fields = new Set(["version", "network", "baseUrl", "previousBaseUrls", "expectedGenesis", "rooms", "journalDirectory", "keypairFile", "payer", "localErUrl", "concurrency", "messageVersion", "discovery"]);
 const invalid = () => new KeeperError("invalid_config");
 const path = (value: unknown) => {
   if (typeof value !== "string" || !isAbsolute(value) || value.includes("\0") || value === "/") throw invalid();
@@ -52,7 +52,11 @@ export function parseConfig(value: unknown): KeeperConfig {
     if (messageVersion !== "legacy" && messageVersion !== "v0") throw invalid();
     if (v.network === "localnet" ? typeof v.localErUrl !== "string" : v.localErUrl !== undefined) throw invalid();
     if ((v.keypairFile === undefined) !== (v.payer === undefined)) throw invalid();
-    return Object.freeze({ network: v.network, expectedGenesis, rooms: Object.freeze(rooms), concurrency, messageVersion, discovery,
+    if (v.previousBaseUrls !== undefined && (!Array.isArray(v.previousBaseUrls) || v.previousBaseUrls.length > 4
+      || v.previousBaseUrls.some(url => typeof url !== "string"))) throw invalid();
+    const previousBaseUrls = v.previousBaseUrls === undefined ? undefined
+      : Object.freeze((v.previousBaseUrls as string[]).map(url => endpoint(url, v.network as Network)));
+    return Object.freeze({ network: v.network, expectedGenesis, rooms: Object.freeze(rooms), concurrency, messageVersion, discovery, previousBaseUrls,
       baseUrl: endpoint(v.baseUrl, v.network), journalDirectory: path(v.journalDirectory),
       localErUrl: v.localErUrl === undefined ? undefined : endpoint(v.localErUrl as string, "localnet"),
       keypairFile: v.keypairFile === undefined ? undefined : path(v.keypairFile), payer: v.payer === undefined ? undefined : key(v.payer) });

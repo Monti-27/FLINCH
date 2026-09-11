@@ -46,8 +46,10 @@ export function actionErrorNotification(error: unknown, context: ActionErrorCont
     description: "Your minimum was protected and no sale was sent. Review the updated quote before selling again." };
   if (/(?:Position|Cohort) changed; review a new sell quote/i.test(detail)) return { tone: "warning", title: "Position changed",
     description: "No sale was sent. Wait for the current round state, then review the updated quote." };
+  if (/Selling is closed for this round/i.test(detail)) return { tone: "info", title: "Selling closed",
+    description: "This request wasn't sent. Wait for Solana to finalize the round, then withdraw any remaining tokens." };
   if (/quote.*(?:expired|stale)|cohort.*closed/i.test(detail)) return { tone: "warning", title: "Quote expired",
-    description: "No sale was sent. Quotes refresh automatically; try SELL again when the connection is ready." };
+    description: "No sale was sent. Quotes refresh automatically. If selling is still open, review the fresh quote and try again." };
   if (/insufficient.*(?:lamports|\bSOL\b|rent)|not enough.*(?:lamports|\bSOL\b)|no record of a prior credit/i.test(detail)) return { tone: "error", title: "Not enough SOL",
     description: "Your wallet needs SOL on this network for the stake, fees and account rent." };
   if (/insufficient|not enough/i.test(detail)) return { tone: "error", title: "Insufficient balance",

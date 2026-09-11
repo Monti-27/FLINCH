@@ -65,10 +65,17 @@ try {
   }
   await page.reload();
   await expect(page.getByText("Live reference", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "FLINCH home", exact: true }).click();
+  await expect(page).toHaveURL(`${origin}/`);
+  await expect(page.locator("#landing-title")).toBeInViewport();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+  await page.locator("#questions").scrollIntoViewIfNeeded();
+  await page.getByRole("link", { name: "FLINCH home", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   assert.deepEqual(errors, []);
   writeFileSync(resolve(directory, "result.json"), JSON.stringify({ complete: true, frontend, keeper,
     liveMarket: true, landingNavigation: true, invalidRoomValidation: true, rules: true, walletPicker: true,
-    responsiveWidths: [1280, 768, 375], reload: true, pageErrors: errors, signingAttempted: false }, null, 2));
+    responsiveWidths: [1280, 768, 375], reload: true, logoReturnsToLandingTop: true, pageErrors: errors, signingAttempted: false }, null, 2));
   console.log(`Hosted smoke passed: ${directory}`);
 } catch (error) {
   await page.screenshot({ path: resolve(directory, "failure.png"), fullPage: true });

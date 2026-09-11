@@ -15,6 +15,7 @@ function headline(room: BaseRoom | undefined, seat: number) {
   if (!economics) return "Waiting for players";
   if (economics.terminalTag === 1) return economics.terminalSeat === seat ? "You held last" : `Player ${economics.terminalSeat + 1} held last`;
   if (economics.terminalTag === 2) return "Everyone sold";
+  if (!economics.terminalTag && room.now >= economics.startedAt + 90n) return "Finalizing positions";
   return economics.terminalTag ? "Round complete" : "Round in progress";
 }
 
@@ -22,6 +23,7 @@ function phaseLabel(room: BaseRoom | undefined, ended: boolean) {
   if (!room) return "Four players. One standoff.";
   if (room.ledger.phase === "cancelled") return "Cancelled";
   if (ended) return "Final";
+  if (room.ledger.economics && room.now >= room.ledger.economics.startedAt + 90n) return "Selling closed";
   return room.ledger.economics ? "Live round" : "Lobby";
 }
 

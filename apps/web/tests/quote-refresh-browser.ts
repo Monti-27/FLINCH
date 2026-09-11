@@ -7,7 +7,8 @@ import { chromium, expect } from "@playwright/test";
 
 declare global {
   interface Window {
-    quoteTest: { reads: number; prompts: number; sends: number; fail: boolean; available: boolean; reserve: bigint; release?: (reject: boolean) => void };
+    quoteTest: { reads: number; prompts: number; sends: number; fail: boolean; available: boolean; reserve: bigint;
+      delay: number; advancePosition: () => void; release?: (reject: boolean) => void };
   }
 }
 
@@ -48,6 +49,11 @@ try {
   assert.equal((await counts()).prompts, 0);
   assert.equal((await counts()).sends, 0);
   await expect(page.getByText("Quotes refresh automatically", { exact: true })).toBeVisible();
+  await page.evaluate(() => { window.quoteTest.delay = 1500; window.quoteTest.advancePosition(); });
+  await expect(sell).toHaveCount(0, { timeout: 1000 });
+  assert.equal((await counts()).prompts, 0);
+  await expect(sell).toBeEnabled();
+  await page.evaluate(() => { window.quoteTest.delay = 100; });
   for (const width of [375, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
@@ -104,7 +110,7 @@ try {
   assert.deepEqual(errors, []);
   writeFileSync(resolve(directory, "result.json"), JSON.stringify({ passed: true, counts: await counts(),
     automatic: true, offlineResume: true, hiddenResume: true, failedReadRecovery: true, cancelledApproval: true, slowApproval: true,
-    minimumFrozen: true, responsiveWidths: [375, 768, 1280], nativeKeyboard: true,
+    minimumFrozen: true, stalePositionCleared: true, responsiveWidths: [375, 768, 1280], nativeKeyboard: true,
     scope: "Real UI and signing flow with isolated test data and mock RPC; no onchain transactions" }, null, 2));
   console.log(`Quote refresh browser passed: ${directory}`);
 } catch (error) {

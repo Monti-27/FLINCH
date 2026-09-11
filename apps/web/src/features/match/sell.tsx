@@ -17,14 +17,15 @@ export function Sell({ client, room, control, controlNow = room.now, seat, walle
   wallTime: number; controlNow?: bigint; run: (request: ActionRequest) => Promise<unknown> }) {
   const queuing = useRef(false);
   const [submitting, setSubmitting] = useState(false);
-  const { available, ended, exited, pending, active, unavailable } = sellState(room, control, seat, controlNow);
-  const feed = useSellQuote(client, room.ledger.address, seat, wallet?.publicKey.toBase58(), available && !!wallet && !busy && !submitting);
+  const { available, ended, closed, exited, pending, active, unavailable } = sellState(room, control, seat, controlNow);
+  const feed = useSellQuote(client, room.ledger.address, seat, wallet?.publicKey.toBase58(), available && !!wallet && !busy && !submitting,
+    room.ledger.economics?.revision);
   const { quote, loading } = feed;
-  const { fresh, quoteIssue } = sellState(room, control, seat, controlNow, quote, wallTime);
+  const { fresh, reviewable, quoteIssue } = sellState(room, control, seat, controlNow, quote, wallTime);
   const sessionReady = session && wallet && session.authority.equals(wallet.publicKey) && session.room.equals(room.ledger.address)
     && control?.sessionSigners[seat]?.equals(session.signer.publicKey) && controlNow < session.expiresAt;
   const queue = async () => {
-    if (!quote || !wallet || !available || !enabled || busy || queuing.current || feed.paused) return;
+    if (!quote || !wallet || !reviewable || !enabled || busy || queuing.current || feed.paused) return;
     queuing.current = true;
     setSubmitting(true);
     feed.stop();
@@ -36,12 +37,12 @@ export function Sell({ client, room, control, controlNow = room.now, seat, walle
   };
   return <section className="panel sell-panel" aria-labelledby="sell-title">
     <div className={styles.header}>
-      <h2 id="sell-title">{ended ? "Round complete" : exited ? "Exit confirmed" : pending ? "Sell queued" : "Your position"}</h2>
+      <h2 id="sell-title">{ended ? "Round complete" : exited ? "Exit confirmed" : closed ? "Selling closed" : pending ? "Sell queued" : "Your position"}</h2>
       {active && wallet && <span className="caption">{sessionReady ? "Signing with session key" : "Signing with wallet approval"}</span>}
     </div>
     {active && <SellTicket key={`${room.ledger.address}:${seat}`} holding={seat >= 0 ? room.ledger.economics?.holdings[seat] ?? 0n : undefined}
       quote={quote} fresh={fresh} quoteIssue={quoteIssue} sessionReady={!!sessionReady} loading={loading} busy={busy || submitting}
-      canQuote={available && !!wallet && !feed.paused} canQueue={available && enabled && !!wallet && !feed.paused}
+      canQuote={available && !!wallet && !feed.paused} canQueue={reviewable && enabled && !!wallet && !feed.paused}
       automatic failed={feed.failed} paused={feed.paused}
       onQuote={() => void feed.refresh()} onQueue={() => void queue()} />}
     {unavailable && <p className={styles.state}>{unavailable}</p>}
