@@ -1,5 +1,9 @@
 # Room network recovery
 
+## Current deployed connection
+
+On 2026-09-11, the user-authorized Helius gateway migration resolved the separately observed public-RPC account-read blocker. Web `ecaf7cdb-f3c2-4b88-b262-27d50483acc6` and keeper `042a73e6-9f40-43f7-b9f6-7f98397eba1c` reached SUCCESS; keeper ownership is running with PostgreSQL connected. Correct Devnet identity, program account reads, decoded room reads and scoped discovery now pass from Railway and the Mac. Four simultaneous read-only browser sessions loaded confirmed room state without errors; hosted smoke and reload also pass. See RAILWAY for evidence and finite free-credit limits. The client recovery behavior and five-second deadline below are unchanged. No new full signing cycle or ten-round soak was run after migration.
+
 ## Cause and scope
 
 The reported live screen showed `Room unavailable` and `Signal timed out`. The client limits individual network requests to five seconds. The screenshot alone does not identify which request timed out or prove a Railway outage.
@@ -38,4 +42,6 @@ FLINCH_UI_URL=http://127.0.0.1:3491/play FLINCH_BROWSER_EXECUTABLE='/Application
 
 ## Deployment boundary
 
-This fix has not been deployed. No hosted keeper was restarted and no live room or wallet was changed. The complete local validator/ER cycle, live Devnet router/session/oracle/swap/recovery/withdrawal cycle, and ten-round Devnet soak were not rerun for this patch. These local results do not constitute a new end-to-end deployment certification.
+This fix is deployed in frontend release `115baa8c-ec1d-4a74-95f1-de056dc57d38` on 2026-09-11. All release source hashes were verified in the running container. Hosted non-signing smoke `artifacts/runs/railway-smoke-1789093559118/result.json` passes. Matching keeper refresh `75d98ad1-e787-4c9f-a957-47ff91abd418` failed startup health checks; the previous keeper remains running. Read-only checks from Railway reproduce Devnet account-read and discovery timeouts, so deploying client retry recovery has not resolved the underlying RPC-read blocker. See RAILWAY for diagnostics and the deployment boundary.
+
+No live test room or wallet was changed by this release verification. The complete local validator/ER cycle, live Devnet router/session/oracle/swap/recovery/withdrawal cycle, and ten-round Devnet soak were not rerun for this release. Local recovery tests and hosted HTTP/browser smoke do not constitute a new end-to-end deployment certification.
